@@ -1,0 +1,10 @@
+# Build artifacts
+bin/
+obj/
+
+# User-specific files
+appsettings.json
+
+# Editor files
+.vscode/
+.idea/
