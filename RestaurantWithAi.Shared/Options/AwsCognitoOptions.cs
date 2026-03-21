@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace RestaurantWithAi.Shared.Options;
 
+[ExcludeFromCodeCoverage]
 public class AwsCognitoOptions
 {
     public required string Region { get; set; }

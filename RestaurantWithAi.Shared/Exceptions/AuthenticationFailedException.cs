@@ -1,8 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace RestaurantWithAi.Shared.Exceptions;
 
-public class AuthenticationFailedException : Exception
-{
-    public AuthenticationFailedException(string message) : base(message)
-    {
-    }
-}
+[ExcludeFromCodeCoverage]
+public class AuthenticationFailedException(string message) : Exception(message);
