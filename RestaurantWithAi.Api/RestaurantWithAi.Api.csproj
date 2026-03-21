@@ -1,19 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <LangVersion>13</LangVersion>
+    <UserSecretsId>f03fd0f6-c6ba-4baa-90bb-59d727aef533</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.26" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.24" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RestaurantWithAi.Core\RestaurantWithAi.Core.csproj" />
+    <ProjectReference Include="..\RestaurantWithAi.Data\RestaurantWithAi.Data.csproj" />
     <ProjectReference Include="..\RestaurantWithAi.Shared\RestaurantWithAi.Shared.csproj" />
   </ItemGroup>
 

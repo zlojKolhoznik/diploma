@@ -4,6 +4,8 @@ using Microsoft.Extensions.Options;
 using RestaurantWithAi.Shared.Auth;
 using RestaurantWithAi.Shared.Exceptions;
 using RestaurantWithAi.Shared.Options;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace RestaurantWithAi.Core.Services;
 public class CognitoAuthService : IAuthService
@@ -21,6 +23,8 @@ public class CognitoAuthService : IAuthService
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
+        var secretHash = ComputeSecretHash(request.Email);
+
         var authRequest = new InitiateAuthRequest
         {
             AuthFlow = AuthFlowType.USER_PASSWORD_AUTH,
@@ -28,7 +32,8 @@ public class CognitoAuthService : IAuthService
             AuthParameters = new Dictionary<string, string>
             {
                 { "USERNAME", request.Email },
-                { "PASSWORD", request.Password }
+                { "PASSWORD", request.Password },
+                { "SECRET_HASH", secretHash }
             }
         };
 
@@ -55,6 +60,7 @@ public class CognitoAuthService : IAuthService
             ClientId = _options.ClientId,
             Username = request.Email,
             Password = request.Password,
+            SecretHash = ComputeSecretHash(request.Email),
             UserAttributes =
             [
                 new AttributeType
@@ -80,5 +86,33 @@ public class CognitoAuthService : IAuthService
         {
             throw new RegistrationFailedException("User registration failed.");
         }
+        
+        var confirmationRequest = new AdminConfirmSignUpRequest
+        {
+            UserPoolId = _options.UserPoolId,
+            Username = request.Email
+        };
+        
+        var confirmationResponse = await _cognito.AdminConfirmSignUpAsync(confirmationRequest);
+        if (confirmationResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
+        {
+            throw new RegistrationFailedException("User registration was successful, but user confirmation failed.");
+        }
+    }
+
+    private string ComputeSecretHash(string username)
+    {
+        if (string.IsNullOrWhiteSpace(_options.ClientId) || string.IsNullOrWhiteSpace(_options.ClientSecret))
+        {
+            throw new InvalidOperationException("AWS Cognito ClientId/ClientSecret is not configured.");
+        }
+
+        var message = username + _options.ClientId;
+        var key = Encoding.UTF8.GetBytes(_options.ClientSecret);
+        var payload = Encoding.UTF8.GetBytes(message);
+
+        using var hmac = new HMACSHA256(key);
+        var hash = hmac.ComputeHash(payload);
+        return Convert.ToBase64String(hash);
     }
 }
