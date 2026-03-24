@@ -10,7 +10,7 @@ public class Dish
 {
     [Key]
     [DataMember]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     
     [DataMember]
     [Required]

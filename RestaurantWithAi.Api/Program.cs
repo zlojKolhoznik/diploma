@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using RestaurantWithAi.Core.Extensions;
+using RestaurantWithAi.Data.Extensions;
 using RestaurantWithAi.Shared.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,6 +46,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>();
 builder.Services.AddCoreServices();
+builder.Services.AddDataServices(builder.Configuration);
 
 var app = builder.Build();
 
