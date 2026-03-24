@@ -9,20 +9,24 @@ public class RestaurantRepository(RestaurantDbContext dbContext) : IRestaurantRe
     public async Task<IEnumerable<Restaurant>> GetAllRestaurantsAsync(string? city = null)
     {
         var restaurantsQuery = dbContext.Restaurants
+            .AsNoTracking()
             .Include(r => r.AvailableDishes)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(city))
         {
             var normalizedCity = city.Trim();
-            var normalizedCityUpper = normalizedCity.ToUpper();
-            restaurantsQuery = restaurantsQuery.Where(r => r.City.Equals(normalizedCityUpper, StringComparison.InvariantCultureIgnoreCase));
+
+            restaurantsQuery = dbContext.Database.IsSqlServer()
+                ? restaurantsQuery.Where(r => EF.Functions.Collate(r.City, "SQL_Latin1_General_CP1_CI_AS") == normalizedCity)
+                : restaurantsQuery.Where(r => string.Equals(r.City, normalizedCity, StringComparison.OrdinalIgnoreCase));
         }
 
         return await restaurantsQuery.ToListAsync();
     }
 
     public async Task<Restaurant> GetRestaurantByIdAsync(Guid id) => await dbContext.Restaurants
+                                                                    .AsNoTracking()
                                                                     .Include(r => r.AvailableDishes)
                                                                     .FirstOrDefaultAsync(r => r.Id == id)
                                                                 ?? throw new KeyNotFoundException($"Restaurant with ID {id} not found");

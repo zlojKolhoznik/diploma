@@ -278,6 +278,10 @@ public class CognitoAuthServiceTests
             .Callback<AdminAddUserToGroupRequest, CancellationToken>((request, _) => capturedAddToGroup = request)
             .ThrowsAsync(new AmazonCognitoIdentityProviderException("cognito failure"));
 
+        cognitoMock
+            .Setup(c => c.AdminDeleteUserAsync(It.IsAny<AdminDeleteUserRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AdminDeleteUserResponse { HttpStatusCode = HttpStatusCode.OK });
+
         var service = CreateService(cognitoMock.Object, ValidOptions);
         var request = new RegisterRequest
         {
@@ -288,9 +292,48 @@ public class CognitoAuthServiceTests
         };
 
         // Act + Assert
-        await Assert.ThrowsAsync<RegistrationFailedException>(() => service.RegisterAsync(request, UserGroup.Waiter));
+        var exception = await Assert.ThrowsAsync<RegistrationFailedException>(() => service.RegisterAsync(request, UserGroup.Waiter));
         Assert.NotNull(capturedAddToGroup);
         Assert.Equal(UserGroup.Waiter.ToString(), capturedAddToGroup!.GroupName);
+        Assert.Equal("Failed to add user to group. User creation was rolled back.", exception.Message);
+        cognitoMock.Verify(c => c.AdminDeleteUserAsync(It.IsAny<AdminDeleteUserRequest>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_WhenRollbackDeleteFails_ThrowsRegistrationFailedExceptionWithRollbackFailureMessage()
+    {
+        // Arrange
+        var cognitoMock = new Mock<IAmazonCognitoIdentityProvider>();
+
+        cognitoMock
+            .Setup(c => c.SignUpAsync(It.IsAny<SignUpRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SignUpResponse { HttpStatusCode = HttpStatusCode.OK });
+
+        cognitoMock
+            .Setup(c => c.AdminConfirmSignUpAsync(It.IsAny<AdminConfirmSignUpRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AdminConfirmSignUpResponse { HttpStatusCode = HttpStatusCode.OK });
+
+        cognitoMock
+            .Setup(c => c.AdminAddUserToGroupAsync(It.IsAny<AdminAddUserToGroupRequest>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new AmazonCognitoIdentityProviderException("cognito failure"));
+
+        cognitoMock
+            .Setup(c => c.AdminDeleteUserAsync(It.IsAny<AdminDeleteUserRequest>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new AmazonCognitoIdentityProviderException("delete failure"));
+
+        var service = CreateService(cognitoMock.Object, ValidOptions);
+        var request = new RegisterRequest
+        {
+            Email = "new.user@example.com",
+            Password = "Password123!",
+            FirstName = "New",
+            LastName = "User"
+        };
+
+        // Act + Assert
+        var exception = await Assert.ThrowsAsync<RegistrationFailedException>(() => service.RegisterAsync(request, UserGroup.Admin));
+        Assert.Equal("Failed to add user to group and rollback deletion failed.", exception.Message);
+        cognitoMock.Verify(c => c.AdminDeleteUserAsync(It.IsAny<AdminDeleteUserRequest>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private static CognitoAuthService CreateService(IAmazonCognitoIdentityProvider cognito, AwsCognitoOptions options)

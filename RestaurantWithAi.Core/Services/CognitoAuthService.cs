@@ -37,7 +37,23 @@ public class CognitoAuthService : IAuthService
             }
         };
 
-        var response = await _cognito.InitiateAuthAsync(authRequest);
+        InitiateAuthResponse response;
+        try
+        {
+            response = await _cognito.InitiateAuthAsync(authRequest);
+        }
+        catch (NotAuthorizedException)
+        {
+            throw new AuthenticationFailedException("Invalid email or password.");
+        }
+        catch (UserNotFoundException)
+        {
+            throw new AuthenticationFailedException("Invalid email or password.");
+        }
+        catch (AmazonCognitoIdentityProviderException)
+        {
+            throw new AuthenticationFailedException("Authentication failed.");
+        }
 
         if (response.HttpStatusCode != System.Net.HttpStatusCode.OK || response.AuthenticationResult is null)
         {
@@ -57,7 +73,16 @@ public class CognitoAuthService : IAuthService
     {
         await SignUpAsync(request);
         await ConfirmUserAsync(request.Email);
-        await AddUserToGroup(group, request.Email);
+
+        try
+        {
+            await AddUserToGroup(group, request.Email);
+        }
+        catch (RegistrationFailedException)
+        {
+            await RollbackConfirmedUserAsync(request.Email);
+            throw new RegistrationFailedException("Failed to add user to group. User creation was rolled back.");
+        }
     }
 
     private async Task SignUpAsync(RegisterRequest request)
@@ -88,7 +113,24 @@ public class CognitoAuthService : IAuthService
             ]
         };
 
-        var signUpResponse = await _cognito.SignUpAsync(signUpRequest);
+        SignUpResponse signUpResponse;
+        try
+        {
+            signUpResponse = await _cognito.SignUpAsync(signUpRequest);
+        }
+        catch (UsernameExistsException)
+        {
+            throw new DuplicateEmailException("A user with this email already exists.");
+        }
+        catch (InvalidPasswordException)
+        {
+            throw;
+        }
+        catch (AmazonCognitoIdentityProviderException)
+        {
+            throw new RegistrationFailedException("User registration failed.");
+        }
+
         if (signUpResponse.HttpStatusCode != System.Net.HttpStatusCode.OK)
         {
             throw new RegistrationFailedException("User registration failed.");
@@ -125,6 +167,28 @@ public class CognitoAuthService : IAuthService
         catch (AmazonCognitoIdentityProviderException)
         {
             throw new RegistrationFailedException("Failed to add user to group.");
+        }
+    }
+
+    private async Task RollbackConfirmedUserAsync(string email)
+    {
+        var request = new AdminDeleteUserRequest
+        {
+            UserPoolId = _options.UserPoolId,
+            Username = email
+        };
+
+        try
+        {
+            var response = await _cognito.AdminDeleteUserAsync(request);
+            if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
+            {
+                throw new RegistrationFailedException("Failed to add user to group and rollback deletion failed.");
+            }
+        }
+        catch (AmazonCognitoIdentityProviderException)
+        {
+            throw new RegistrationFailedException("Failed to add user to group and rollback deletion failed.");
         }
     }
 

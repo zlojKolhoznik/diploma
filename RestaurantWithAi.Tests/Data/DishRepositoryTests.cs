@@ -53,6 +53,38 @@ public class DishRepositoryTests
     }
 
     [Fact]
+    public async Task GetAllDishesAsync_WhenCalled_DoesNotTrackEntities()
+    {
+        await using var context = CreateContext();
+        context.Dishes.AddRange(CreateDish("Pizza"), CreateDish("Pasta"));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var sut = CreateSut(context);
+
+        var result = (await sut.GetAllDishesAsync()).ToList();
+
+        Assert.Equal(2, result.Count);
+        Assert.Empty(context.ChangeTracker.Entries());
+    }
+
+    [Fact]
+    public async Task GetDishByIdAsync_WhenCalled_DoesNotTrackEntity()
+    {
+        await using var context = CreateContext();
+        var dish = CreateDish("Burger");
+        context.Dishes.Add(dish);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var sut = CreateSut(context);
+
+        _ = await sut.GetDishByIdAsync(dish.Id);
+
+        Assert.Empty(context.ChangeTracker.Entries());
+    }
+
+    [Fact]
     public async Task GetDishByIdAsync_WhenDishDoesNotExist_ThrowsKeyNotFoundException()
     {
         await using var context = CreateContext();

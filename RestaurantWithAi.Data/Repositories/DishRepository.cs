@@ -7,10 +7,12 @@ namespace RestaurantWithAi.Data.Repositories;
 public class DishRepository(RestaurantDbContext dbContext) : IDishRepository
 {
     public async Task<IEnumerable<Dish>> GetAllDishesAsync() => await dbContext.Dishes
+        .AsNoTracking()
         .Include(d => d.AvailableAtRestaurants)
         .ToListAsync();
 
     public async Task<Dish> GetDishByIdAsync(Guid id) => await dbContext.Dishes
+                                                            .AsNoTracking()
                                                             .Include(d => d.AvailableAtRestaurants)
                                                             .FirstOrDefaultAsync(d => d.Id == id)
                                                         ?? throw new KeyNotFoundException($"Dish with ID {id} not found");

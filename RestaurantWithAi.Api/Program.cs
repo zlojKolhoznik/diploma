@@ -14,11 +14,15 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.Configure<AwsCognitoOptions>(
-    builder.Configuration.GetSection("AWS"));
+builder.Services
+    .AddOptions<AwsCognitoOptions>()
+    .Bind(builder.Configuration.GetSection(AwsCognitoOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 builder.Services.AddLogging();
 
-var awsCognitoOptions = builder.Configuration.GetSection("AWS").Get<AwsCognitoOptions>()!;
+var awsCognitoOptions = builder.Configuration.GetSection(AwsCognitoOptions.SectionName).Get<AwsCognitoOptions>()
+                        ?? throw new InvalidOperationException($"Missing '{AwsCognitoOptions.SectionName}' configuration section.");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -28,12 +32,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuer = true,
             ValidIssuer = awsCognitoOptions.Authority,
-            ValidateAudience = true,
-            ValidAudience = awsCognitoOptions.ClientId,
+            // Cognito access tokens use client_id (and may not carry aud in all flows).
+            ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             RoleClaimType = "cognito:groups",
-            NameClaimType = "email",
+            NameClaimType = "sub",
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                var principal = context.Principal;
+                var tokenUse = principal?.FindFirst("token_use")?.Value;
+                var clientId = principal?.FindFirst("client_id")?.Value
+                               ?? principal?.FindFirst("aud")?.Value;
+
+                if (!string.Equals(tokenUse, "access", StringComparison.Ordinal) ||
+                    !string.Equals(clientId, awsCognitoOptions.ClientId, StringComparison.Ordinal))
+                {
+                    context.Fail("Invalid access token.");
+                }
+
+                return Task.CompletedTask;
+            }
         };
     });
 

@@ -104,6 +104,38 @@ public class RestaurantRepositoryTests
     }
 
     [Fact]
+    public async Task GetAllRestaurantsAsync_WhenCalled_DoesNotTrackEntities()
+    {
+        await using var context = CreateContext();
+        context.Restaurants.AddRange(CreateRestaurant("Kyiv", "Address 1"), CreateRestaurant("Lviv", "Address 2"));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var sut = new RestaurantRepository(context);
+
+        var result = (await sut.GetAllRestaurantsAsync()).ToList();
+
+        Assert.Equal(2, result.Count);
+        Assert.Empty(context.ChangeTracker.Entries());
+    }
+
+    [Fact]
+    public async Task GetRestaurantByIdAsync_WhenCalled_DoesNotTrackEntity()
+    {
+        await using var context = CreateContext();
+        var restaurant = CreateRestaurant("Kyiv", "Address 1");
+        context.Restaurants.Add(restaurant);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var sut = new RestaurantRepository(context);
+
+        _ = await sut.GetRestaurantByIdAsync(restaurant.Id);
+
+        Assert.Empty(context.ChangeTracker.Entries());
+    }
+
+    [Fact]
     public async Task GetRestaurantByIdAsync_WhenRestaurantDoesNotExist_ThrowsKeyNotFoundException()
     {
         await using var context = CreateContext();
