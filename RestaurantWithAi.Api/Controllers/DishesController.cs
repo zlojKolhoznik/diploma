@@ -104,6 +104,36 @@ public class DishesController(IDishesService dishesService, ILogger<DishesContro
         }
     }
 
+    [HttpPatch("{id:guid}/availability")]
+    [Authorize(Roles = "Waiter,Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateDishAvailability(Guid id, [FromBody] IEnumerable<Guid> restaurantIds)
+    {
+        try
+        {
+            await dishesService.UpdateDishAvailabilityAsync(id, restaurantIds);
+            return NoContent();
+        }
+        catch (ArgumentNullException ex)
+        {
+            logger.LogInformation(ex, "Update dish availability request for id {DishId} was invalid.", id);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            logger.LogInformation(ex, "Dish availability update failed for dish id {DishId}.", id);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while updating dish availability for dish {DishId}.", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+        }
+    }
+
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

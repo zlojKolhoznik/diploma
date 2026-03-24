@@ -1,14 +1,18 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
 using RestaurantWithAi.Core.Contracts;
 using RestaurantWithAi.Core.Entities;
 
 namespace RestaurantWithAi.Data.Repositories;
 
-public class DishRepository(RestaurantDbContext dbContext, ILogger<DishRepository> logger) : IDishRepository
+public class DishRepository(RestaurantDbContext dbContext) : IDishRepository
 {
-    public Task<IEnumerable<Dish>> GetAllDishesAsync() => Task.FromResult<IEnumerable<Dish>>(dbContext.Dishes);
+    public async Task<IEnumerable<Dish>> GetAllDishesAsync() => await dbContext.Dishes
+        .Include(d => d.AvailableAtRestaurants)
+        .ToListAsync();
 
-    public async Task<Dish> GetDishByIdAsync(Guid id) => await dbContext.Dishes.FindAsync(id) 
+    public async Task<Dish> GetDishByIdAsync(Guid id) => await dbContext.Dishes
+                                                            .Include(d => d.AvailableAtRestaurants)
+                                                            .FirstOrDefaultAsync(d => d.Id == id)
                                                         ?? throw new KeyNotFoundException($"Dish with ID {id} not found");
 
     public async Task AddDishAsync(Dish dish)
@@ -28,6 +32,29 @@ public class DishRepository(RestaurantDbContext dbContext, ILogger<DishRepositor
         dishFromDb.Price = dish.Price;
         dishFromDb.ImageUrl = dish.ImageUrl;
         
+        await dbContext.SaveChangesAsync();
+    }
+
+    public async Task UpdateDishAvailabilityAsync(Guid dishId, IEnumerable<Guid> restaurantIds)
+    {
+        var distinctRestaurantIds = restaurantIds.Distinct().ToList();
+        var dish = await dbContext.Dishes
+                       .Include(d => d.AvailableAtRestaurants)
+                       .FirstOrDefaultAsync(d => d.Id == dishId)
+                   ?? throw new KeyNotFoundException($"Dish with ID {dishId} not found");
+
+        var restaurants = await dbContext.Restaurants
+            .Where(r => distinctRestaurantIds.Contains(r.Id))
+            .ToListAsync();
+
+        if (restaurants.Count != distinctRestaurantIds.Count)
+        {
+            var foundRestaurantIds = restaurants.Select(r => r.Id).ToHashSet();
+            var missingRestaurantIds = distinctRestaurantIds.Where(id => !foundRestaurantIds.Contains(id));
+            throw new KeyNotFoundException($"Restaurant IDs not found: {string.Join(", ", missingRestaurantIds)}");
+        }
+
+        dish.AvailableAtRestaurants = restaurants;
         await dbContext.SaveChangesAsync();
     }
 

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RestaurantWithAi.Core.Services;
 using RestaurantWithAi.Shared.Auth;
 using RestaurantWithAi.Shared.Dishes;
+using RestaurantWithAi.Shared.Restaurants;
 
 namespace RestaurantWithAi.Core.Extensions;
 
@@ -14,6 +15,7 @@ public static class ServiceCollectionExtensions
             services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
             services.AddScoped<IAuthService, CognitoAuthService>();
             services.AddScoped<IDishesService, DishService>();
+            services.AddScoped<IRestaurantsService, RestaurantService>();
             return services;
         }
 }

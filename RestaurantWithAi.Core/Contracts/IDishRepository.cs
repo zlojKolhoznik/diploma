@@ -8,5 +8,6 @@ public interface IDishRepository
     Task<Dish> GetDishByIdAsync(Guid id);
     Task AddDishAsync(Dish dish);
     Task UpdateDishAsync(Dish dish);
+    Task UpdateDishAvailabilityAsync(Guid dishId, IEnumerable<Guid> restaurantIds);
     Task DeleteDishAsync(Guid id);
 }

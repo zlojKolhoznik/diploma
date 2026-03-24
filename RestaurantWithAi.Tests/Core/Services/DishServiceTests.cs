@@ -178,6 +178,34 @@ public class DishServiceTests
         repositoryMock.Verify(r => r.DeleteDishAsync(dishId), Times.Once);
     }
 
+    [Fact]
+    public async Task UpdateDishAvailabilityAsync_WhenRestaurantIdsAreNull_ThrowsArgumentNullException()
+    {
+        var repositoryMock = new Mock<IDishRepository>(MockBehavior.Strict);
+        var sut = CreateSut(repositoryMock.Object);
+
+        await Assert.ThrowsAsync<ArgumentNullException>(() => sut.UpdateDishAvailabilityAsync(Guid.NewGuid(), null!));
+        repositoryMock.Verify(r => r.UpdateDishAvailabilityAsync(It.IsAny<Guid>(), It.IsAny<IEnumerable<Guid>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateDishAvailabilityAsync_WhenRestaurantIdsAreProvided_DelegatesToRepository()
+    {
+        var repositoryMock = new Mock<IDishRepository>();
+        var dishId = Guid.NewGuid();
+        var restaurantIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
+
+        repositoryMock
+            .Setup(r => r.UpdateDishAvailabilityAsync(dishId, restaurantIds))
+            .Returns(Task.CompletedTask);
+
+        var sut = CreateSut(repositoryMock.Object);
+
+        await sut.UpdateDishAvailabilityAsync(dishId, restaurantIds);
+
+        repositoryMock.Verify(r => r.UpdateDishAvailabilityAsync(dishId, restaurantIds), Times.Once);
+    }
+
     private static Dish CreateDish(string name, decimal price)
     {
         return new Dish

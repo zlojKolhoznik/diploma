@@ -34,6 +34,12 @@ public class DishService(IDishRepository dishRepository, IMapper mapper) : IDish
         await dishRepository.UpdateDishAsync(dish);
     }
 
+    public Task UpdateDishAvailabilityAsync(Guid id, IEnumerable<Guid> restaurantIds)
+    {
+        ArgumentNullException.ThrowIfNull(restaurantIds);
+        return dishRepository.UpdateDishAvailabilityAsync(id, restaurantIds);
+    }
+
     public Task DeleteDishAsync(Guid id)
     {
         return dishRepository.DeleteDishAsync(id);

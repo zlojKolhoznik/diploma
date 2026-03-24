@@ -27,4 +27,6 @@ public class Dish
     [DataMember]
     [Required]
     public required string ImageUrl { get; set; }
+
+    public ICollection<Restaurant> AvailableAtRestaurants { get; set; } = new List<Restaurant>();
 }

@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Moq;
 using RestaurantWithAi.Core.Entities;
 using RestaurantWithAi.Data;
 using RestaurantWithAi.Data.Repositories;
@@ -154,10 +152,61 @@ public class DishRepositoryTests
         await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.DeleteDishAsync(Guid.NewGuid()));
     }
 
+    [Fact]
+    public async Task UpdateDishAvailabilityAsync_WhenDishAndRestaurantsExist_UpdatesAvailability()
+    {
+        await using var context = CreateContext();
+        var dish = CreateDish("Steak");
+        var restaurantOne = CreateRestaurant("Kyiv", "Street 1");
+        var restaurantTwo = CreateRestaurant("Lviv", "Street 2");
+
+        context.Dishes.Add(dish);
+        context.Restaurants.AddRange(restaurantOne, restaurantTwo);
+        await context.SaveChangesAsync();
+
+        var sut = CreateSut(context);
+
+        await sut.UpdateDishAvailabilityAsync(dish.Id, new[] { restaurantOne.Id, restaurantTwo.Id });
+
+        var dishFromDb = await context.Dishes
+            .Include(d => d.AvailableAtRestaurants)
+            .SingleAsync(d => d.Id == dish.Id);
+        Assert.Equal(2, dishFromDb.AvailableAtRestaurants.Count);
+        Assert.Contains(dishFromDb.AvailableAtRestaurants, r => r.Id == restaurantOne.Id);
+        Assert.Contains(dishFromDb.AvailableAtRestaurants, r => r.Id == restaurantTwo.Id);
+    }
+
+    [Fact]
+    public async Task UpdateDishAvailabilityAsync_WhenDishDoesNotExist_ThrowsKeyNotFoundException()
+    {
+        await using var context = CreateContext();
+        var restaurant = CreateRestaurant("Kyiv", "Street 1");
+        context.Restaurants.Add(restaurant);
+        await context.SaveChangesAsync();
+
+        var sut = CreateSut(context);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.UpdateDishAvailabilityAsync(Guid.NewGuid(), new[] { restaurant.Id }));
+    }
+
+    [Fact]
+    public async Task UpdateDishAvailabilityAsync_WhenSomeRestaurantsDoNotExist_ThrowsKeyNotFoundException()
+    {
+        await using var context = CreateContext();
+        var dish = CreateDish("Steak");
+        var restaurant = CreateRestaurant("Kyiv", "Street 1");
+        context.Dishes.Add(dish);
+        context.Restaurants.Add(restaurant);
+        await context.SaveChangesAsync();
+
+        var sut = CreateSut(context);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.UpdateDishAvailabilityAsync(dish.Id, new[] { restaurant.Id, Guid.NewGuid() }));
+    }
+
     private static DishRepository CreateSut(RestaurantDbContext context)
     {
-        var loggerMock = new Mock<ILogger<DishRepository>>();
-        return new DishRepository(context, loggerMock.Object);
+        return new DishRepository(context);
     }
 
     private static RestaurantDbContext CreateContext()
@@ -174,6 +223,16 @@ public class DishRepositoryTests
             Description = $"Description for {name}",
             Price = 10m,
             ImageUrl = "https://example.com/dish.jpg"
+        };
+    }
+
+    private static Restaurant CreateRestaurant(string city, string address)
+    {
+        return new Restaurant
+        {
+            Id = Guid.NewGuid(),
+            City = city,
+            Address = address
         };
     }
 
