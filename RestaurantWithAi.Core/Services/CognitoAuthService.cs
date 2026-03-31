@@ -46,7 +46,7 @@ public class CognitoAuthService : IAuthService
         {
             throw new AuthenticationFailedException("Invalid email or password.");
         }
-        catch (UserNotFoundException)
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException)
         {
             throw new AuthenticationFailedException("Invalid email or password.");
         }

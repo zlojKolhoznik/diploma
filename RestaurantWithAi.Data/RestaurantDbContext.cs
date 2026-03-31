@@ -7,6 +7,7 @@ public class RestaurantDbContext : DbContext
 {
     public DbSet<Dish> Dishes { get; set; }
     public DbSet<Restaurant> Restaurants { get; set; }
+    public DbSet<Waiter> Waiters { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -14,6 +15,7 @@ public class RestaurantDbContext : DbContext
         ConfigureDishesTable(modelBuilder);
         ConfigureRestaurantsTable(modelBuilder);
         ConfigureDishAvailabilityRelationship(modelBuilder);
+        ConfigureWaitersTable(modelBuilder);
     }
 
     private static void ConfigureDishesTable(ModelBuilder modelBuilder)
@@ -44,5 +46,18 @@ public class RestaurantDbContext : DbContext
             .HasMany(d => d.AvailableAtRestaurants)
             .WithMany(r => r.AvailableDishes)
             .UsingEntity("DishAvailability");
+    }
+
+    private static void ConfigureWaitersTable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Waiter>().ToTable("Waiters");
+        modelBuilder.Entity<Waiter>().HasKey(w => w.UserId);
+        modelBuilder.Entity<Waiter>().Property(w => w.UserId).HasMaxLength(200);
+        modelBuilder.Entity<Waiter>()
+            .HasOne(w => w.Restaurant)
+            .WithMany()
+            .HasForeignKey(w => w.RestaurantId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
     }
 }
