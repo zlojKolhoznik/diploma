@@ -42,6 +42,7 @@ public class AuthenticationController(IAuthService authService, ILogger<Authenti
 	[HttpPost("register")]
 	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status409Conflict)]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<IActionResult> Register([FromBody] RegisterRequest request)
 	{
@@ -60,6 +61,11 @@ public class AuthenticationController(IAuthService authService, ILogger<Authenti
 		{
 			logger.LogInformation("Invalid password");
 			return BadRequest(new { message = ex.Message });
+		}
+		catch (DuplicateEmailException ex)
+		{
+			logger.LogInformation("Duplicate email registration attempt");
+			return Conflict(new { message = ex.Message });
 		}
 		catch (Exception ex)
 		{
