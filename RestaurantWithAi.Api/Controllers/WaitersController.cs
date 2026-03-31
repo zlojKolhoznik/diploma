@@ -62,18 +62,19 @@ public class WaitersController(IWaiterService waiterService, ILogger<WaitersCont
         }
     }
 
-    [HttpPatch("restaurant")]
+    [HttpPatch("{userId}/restaurant")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AssignWaiterToRestaurant(
+        string userId,
         [FromBody] AssignWaiterToRestaurantRequest request)
     {
         try
         {
-            await waiterService.AssignWaiterToRestaurantAsync(request.RestaurantId, request.UserId);
+            await waiterService.AssignWaiterToRestaurantAsync(request.RestaurantId, userId);
             logger.LogInformation("Assign waiter to restaurant request succeeded");
             return NoContent();
         }
