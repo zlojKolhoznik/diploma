@@ -1,5 +1,6 @@
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
+using AutoMapper;
 using Microsoft.Extensions.Options;
 using RestaurantWithAi.Shared.Exceptions;
 using RestaurantWithAi.Shared.Options;
@@ -9,13 +10,15 @@ namespace RestaurantWithAi.Core.Services;
 
 public class WaiterService(
     IAmazonCognitoIdentityProvider cognito,
-    IOptions<AwsCognitoOptions> options) : IWaiterService
+    IOptions<AwsCognitoOptions> options,
+    IMapper mapper) : IWaiterService
 {
     private const string WaitersGroupName = "Waiters";
     private const string RestaurantIdAttributeName = "custom:restaurantId";
 
     private readonly IAmazonCognitoIdentityProvider _cognito = cognito;
     private readonly AwsCognitoOptions _options = options.Value;
+    private readonly IMapper _mapper = mapper;
 
     public async Task<IEnumerable<WaiterResponse>> GetAllWaitersAsync()
     {
@@ -27,14 +30,7 @@ public class WaiterService(
 
         var response = await _cognito.ListUsersInGroupAsync(request);
 
-        return response.Users.Select(u => new WaiterResponse
-        {
-            UserId = u.Username,
-            Email = GetAttributeValue(u.Attributes, "email") ?? string.Empty,
-            FirstName = GetAttributeValue(u.Attributes, "given_name"),
-            LastName = GetAttributeValue(u.Attributes, "family_name"),
-            RestaurantId = GetAttributeValue(u.Attributes, RestaurantIdAttributeName)
-        });
+        return _mapper.Map<IEnumerable<WaiterResponse>>(response.Users);
     }
 
     public async Task AssignWaiterRoleAsync(string userId)
@@ -90,8 +86,4 @@ public class WaiterService(
         }
     }
 
-    private static string? GetAttributeValue(List<AttributeType> attributes, string name)
-    {
-        return attributes.FirstOrDefault(a => a.Name == name)?.Value;
-    }
 }
