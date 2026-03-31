@@ -26,7 +26,8 @@ public class WaitersController(IWaiterService waiterService, ILogger<WaitersCont
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An unexpected error occurred." });
         }
     }
 
@@ -38,14 +39,16 @@ public class WaitersController(IWaiterService waiterService, ILogger<WaitersCont
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AssignWaiterRole(string userId, [FromBody] AssignWaiterRoleRequest request)
     {
+        if (string.IsNullOrEmpty(request.RestaurantId))
+        {
+            logger.LogInformation("Assign waiter role request failed due to missing restaurant ID");
+            return BadRequest(new { message = "Restaurant ID is required." });
+        }
+
         try
         {
             await waiterService.AssignWaiterRoleAsync(userId);
-
-            if (!string.IsNullOrEmpty(request.RestaurantId))
-            {
-                await waiterService.AssignWaiterToRestaurantAsync(request.RestaurantId, userId);
-            }
+            await waiterService.AssignWaiterToRestaurantAsync(request.RestaurantId, userId);
 
             logger.LogInformation("Assign waiter role request succeeded");
             return NoContent();
@@ -58,7 +61,8 @@ public class WaitersController(IWaiterService waiterService, ILogger<WaitersCont
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An unexpected error occurred." });
         }
     }
 
@@ -86,7 +90,8 @@ public class WaitersController(IWaiterService waiterService, ILogger<WaitersCont
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An unexpected error occurred." });
         }
     }
 }
