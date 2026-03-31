@@ -66,13 +66,48 @@ public class WaitersControllerTests
     {
         // Arrange
         var userId = "user123";
+        var request = new AssignWaiterRoleRequest();
         _waiterServiceMock.Setup(s => s.AssignWaiterRoleAsync(userId)).Returns(Task.CompletedTask);
 
         // Act
-        var result = await _controller.AssignWaiterRole(userId);
+        var result = await _controller.AssignWaiterRole(userId, request);
 
         // Assert
         Assert.IsType<NoContentResult>(result);
+    }
+
+    [Fact]
+    public async Task AssignWaiterRole_AlsoAssignsRestaurant_WhenRestaurantIdProvided()
+    {
+        // Arrange
+        var userId = "user123";
+        var restaurantId = "restaurant1";
+        var request = new AssignWaiterRoleRequest { RestaurantId = restaurantId };
+        _waiterServiceMock.Setup(s => s.AssignWaiterRoleAsync(userId)).Returns(Task.CompletedTask);
+        _waiterServiceMock.Setup(s => s.AssignWaiterToRestaurantAsync(restaurantId, userId)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.AssignWaiterRole(userId, request);
+
+        // Assert
+        Assert.IsType<NoContentResult>(result);
+        _waiterServiceMock.Verify(s => s.AssignWaiterToRestaurantAsync(restaurantId, userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task AssignWaiterRole_DoesNotAssignRestaurant_WhenRestaurantIdNotProvided()
+    {
+        // Arrange
+        var userId = "user123";
+        var request = new AssignWaiterRoleRequest();
+        _waiterServiceMock.Setup(s => s.AssignWaiterRoleAsync(userId)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.AssignWaiterRole(userId, request);
+
+        // Assert
+        Assert.IsType<NoContentResult>(result);
+        _waiterServiceMock.Verify(s => s.AssignWaiterToRestaurantAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -80,11 +115,12 @@ public class WaitersControllerTests
     {
         // Arrange
         var userId = "nonexistent";
+        var request = new AssignWaiterRoleRequest();
         _waiterServiceMock.Setup(s => s.AssignWaiterRoleAsync(userId))
             .ThrowsAsync(new UserNotFoundException($"User with id '{userId}' was not found."));
 
         // Act
-        var result = await _controller.AssignWaiterRole(userId);
+        var result = await _controller.AssignWaiterRole(userId, request);
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -96,11 +132,12 @@ public class WaitersControllerTests
     {
         // Arrange
         var userId = "user123";
+        var request = new AssignWaiterRoleRequest();
         _waiterServiceMock.Setup(s => s.AssignWaiterRoleAsync(userId))
             .ThrowsAsync(new Exception("Unexpected error"));
 
         // Act
-        var result = await _controller.AssignWaiterRole(userId);
+        var result = await _controller.AssignWaiterRole(userId, request);
 
         // Assert
         var statusResult = Assert.IsType<ObjectResult>(result);
@@ -115,13 +152,12 @@ public class WaitersControllerTests
     public async Task AssignWaiterToRestaurant_ReturnsNoContent_WhenServiceSucceeds()
     {
         // Arrange
-        var restaurantId = "restaurant1";
-        var request = new AssignWaiterToRestaurantRequest { UserId = "user123" };
-        _waiterServiceMock.Setup(s => s.AssignWaiterToRestaurantAsync(restaurantId, request.UserId))
+        var request = new AssignWaiterToRestaurantRequest { UserId = "user123", RestaurantId = "restaurant1" };
+        _waiterServiceMock.Setup(s => s.AssignWaiterToRestaurantAsync(request.RestaurantId, request.UserId))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _controller.AssignWaiterToRestaurant(restaurantId, request);
+        var result = await _controller.AssignWaiterToRestaurant(request);
 
         // Assert
         Assert.IsType<NoContentResult>(result);
@@ -131,13 +167,12 @@ public class WaitersControllerTests
     public async Task AssignWaiterToRestaurant_ReturnsNotFound_WhenUserNotFound()
     {
         // Arrange
-        var restaurantId = "restaurant1";
-        var request = new AssignWaiterToRestaurantRequest { UserId = "nonexistent" };
-        _waiterServiceMock.Setup(s => s.AssignWaiterToRestaurantAsync(restaurantId, request.UserId))
+        var request = new AssignWaiterToRestaurantRequest { UserId = "nonexistent", RestaurantId = "restaurant1" };
+        _waiterServiceMock.Setup(s => s.AssignWaiterToRestaurantAsync(request.RestaurantId, request.UserId))
             .ThrowsAsync(new UserNotFoundException($"User with id '{request.UserId}' was not found."));
 
         // Act
-        var result = await _controller.AssignWaiterToRestaurant(restaurantId, request);
+        var result = await _controller.AssignWaiterToRestaurant(request);
 
         // Assert
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -148,13 +183,12 @@ public class WaitersControllerTests
     public async Task AssignWaiterToRestaurant_Returns500_WhenServiceThrows()
     {
         // Arrange
-        var restaurantId = "restaurant1";
-        var request = new AssignWaiterToRestaurantRequest { UserId = "user123" };
-        _waiterServiceMock.Setup(s => s.AssignWaiterToRestaurantAsync(restaurantId, request.UserId))
+        var request = new AssignWaiterToRestaurantRequest { UserId = "user123", RestaurantId = "restaurant1" };
+        _waiterServiceMock.Setup(s => s.AssignWaiterToRestaurantAsync(request.RestaurantId, request.UserId))
             .ThrowsAsync(new Exception("Unexpected error"));
 
         // Act
-        var result = await _controller.AssignWaiterToRestaurant(restaurantId, request);
+        var result = await _controller.AssignWaiterToRestaurant(request);
 
         // Assert
         var statusResult = Assert.IsType<ObjectResult>(result);
