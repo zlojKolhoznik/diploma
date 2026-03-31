@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RestaurantWithAi.Shared\RestaurantWithAi.Shared.csproj" />
+    <ProjectReference Include="..\RestaurantWithAi.Data\RestaurantWithAi.Data.csproj" />
   </ItemGroup>
 
 </Project>
