@@ -5,6 +5,7 @@ using RestaurantWithAi.Shared.Auth;
 using RestaurantWithAi.Shared.Waiters;
 using RestaurantWithAi.Shared.Dishes;
 using RestaurantWithAi.Shared.Restaurants;
+using RestaurantWithAi.Shared.Tables;
 
 namespace RestaurantWithAi.Core.Extensions;
 
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IWaiterService, WaiterService>();
             services.AddScoped<IDishesService, DishService>();
             services.AddScoped<IRestaurantsService, RestaurantService>();
+            services.AddScoped<ITablesService, TableService>();
             return services;
         }
 }

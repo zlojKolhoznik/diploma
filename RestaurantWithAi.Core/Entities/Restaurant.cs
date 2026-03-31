@@ -14,4 +14,6 @@ public class Restaurant
     public required string Address { get; set; }
     
     public ICollection<Dish> AvailableDishes { get; set; } = new List<Dish>();
+
+    public ICollection<Table> Tables { get; set; } = new List<Table>();
 }
