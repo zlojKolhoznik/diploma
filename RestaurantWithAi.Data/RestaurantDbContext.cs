@@ -8,6 +8,7 @@ public class RestaurantDbContext : DbContext
     public DbSet<Dish> Dishes { get; set; }
     public DbSet<Restaurant> Restaurants { get; set; }
     public DbSet<Waiter> Waiters { get; set; }
+    public DbSet<Table> Tables { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -16,6 +17,7 @@ public class RestaurantDbContext : DbContext
         ConfigureRestaurantsTable(modelBuilder);
         ConfigureDishAvailabilityRelationship(modelBuilder);
         ConfigureWaitersTable(modelBuilder);
+        ConfigureTablesTable(modelBuilder);
     }
 
     private static void ConfigureDishesTable(ModelBuilder modelBuilder)
@@ -59,5 +61,16 @@ public class RestaurantDbContext : DbContext
             .HasForeignKey(w => w.RestaurantId)
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
+    }
+
+    private static void ConfigureTablesTable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Table>().ToTable("Tables");
+        modelBuilder.Entity<Table>().HasKey(t => new { t.RestaurantId, t.TableNumber });
+        modelBuilder.Entity<Table>()
+            .HasOne(t => t.Restaurant)
+            .WithMany(r => r.Tables)
+            .HasForeignKey(t => t.RestaurantId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
