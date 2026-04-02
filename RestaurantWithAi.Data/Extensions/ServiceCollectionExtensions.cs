@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
         public static IServiceCollection AddDataServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IDishRepository, DishRepository>();
+            services.AddScoped<IReservationRepository, ReservationRepository>();
             services.AddScoped<IRestaurantRepository, RestaurantRepository>();
             services.AddScoped<IWaiterRepository, WaiterRepository>();
             services.AddScoped<ITableRepository, TableRepository>();
