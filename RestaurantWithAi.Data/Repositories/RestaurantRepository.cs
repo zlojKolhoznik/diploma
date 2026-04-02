@@ -1,11 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RestaurantWithAi.Core.Contracts;
 using RestaurantWithAi.Core.Entities;
+using RestaurantWithAi.Shared.Reservations;
 
 namespace RestaurantWithAi.Data.Repositories;
 
 public class RestaurantRepository(RestaurantDbContext dbContext) : IRestaurantRepository
 {
+    private static readonly TimeSpan GapBuffer = TimeSpan.FromMinutes(15);
+
     public async Task<IEnumerable<Restaurant>> GetAllRestaurantsAsync(string? city = null)
     {
         var restaurantsQuery = dbContext.Restaurants
@@ -56,6 +59,29 @@ public class RestaurantRepository(RestaurantDbContext dbContext) : IRestaurantRe
                          ?? throw new KeyNotFoundException($"Restaurant with ID {id} not found");
         dbContext.Restaurants.Remove(restaurant);
         await dbContext.SaveChangesAsync();
+    }
+
+    public async Task<bool> HasAvailableTablesAsync(Guid restaurantId, DateTimeOffset startTime, int durationMinutes)
+    {
+        var hasTables = await dbContext.Tables.AnyAsync(t => t.RestaurantId == restaurantId);
+        if (!hasTables)
+            return false;
+
+        var endTime = startTime.AddMinutes(durationMinutes);
+
+        var occupiedTableNumbers = await dbContext.Reservations
+            .AsNoTracking()
+            .Where(r => r.RestaurantId == restaurantId
+                        && r.TableNumber != null
+                        && r.Status != ReservationStatus.Cancelled
+                        && startTime < r.StartTime.AddMinutes(r.DurationMinutes).Add(GapBuffer)
+                        && endTime > r.StartTime.Add(-GapBuffer))
+            .Select(r => r.TableNumber!.Value)
+            .Distinct()
+            .ToListAsync();
+
+        var totalTableCount = await dbContext.Tables.CountAsync(t => t.RestaurantId == restaurantId);
+        return occupiedTableNumbers.Count < totalTableCount;
     }
 }
 

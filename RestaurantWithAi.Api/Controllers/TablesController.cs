@@ -32,6 +32,36 @@ public class TablesController(ITablesService tablesService, ILogger<TablesContro
         }
     }
 
+    [HttpGet("available")]
+    [ProducesResponseType(typeof(IEnumerable<TableBrief>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<TableBrief>>> GetAvailableTables(
+        Guid restaurantId,
+        [FromQuery] DateTimeOffset time,
+        [FromQuery] int duration)
+    {
+        if (duration <= 0)
+            return BadRequest(new { message = "Duration must be greater than 0." });
+
+        try
+        {
+            var tables = await tablesService.GetAvailableTablesAsync(restaurantId, time, duration);
+            return Ok(tables);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            logger.LogInformation(ex, "Restaurant with id {RestaurantId} was not found.", restaurantId);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while retrieving available tables for restaurant {RestaurantId}.", restaurantId);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+        }
+    }
+
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

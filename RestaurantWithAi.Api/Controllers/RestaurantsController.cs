@@ -11,12 +11,22 @@ public class RestaurantsController(IRestaurantsService restaurantsService, ILogg
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<RestaurantBrief>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<RestaurantBrief>>> GetRestaurants([FromQuery] string? city)
+    public async Task<ActionResult<IEnumerable<RestaurantBrief>>> GetRestaurants(
+        [FromQuery] string? city,
+        [FromQuery] DateTimeOffset? time = null,
+        [FromQuery] int? duration = null)
     {
+        if (time.HasValue != duration.HasValue)
+        {
+            var missing = time.HasValue ? "duration" : "time";
+            return BadRequest(new { message = $"Both 'time' and 'duration' must be specified together. Missing: '{missing}'." });
+        }
+
         try
         {
-            var restaurants = await restaurantsService.GetRestaurantsAsync(city);
+            var restaurants = await restaurantsService.GetRestaurantsAsync(city, time, duration);
             return Ok(restaurants);
         }
         catch (Exception ex)
@@ -29,13 +39,23 @@ public class RestaurantsController(IRestaurantsService restaurantsService, ILogg
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(RestaurantDetail), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<RestaurantDetail>> GetRestaurant(Guid id)
+    public async Task<ActionResult<RestaurantDetail>> GetRestaurant(
+        Guid id,
+        [FromQuery] DateTimeOffset? time = null,
+        [FromQuery] int? duration = null)
     {
+        if (time.HasValue != duration.HasValue)
+        {
+            var missing = time.HasValue ? "duration" : "time";
+            return BadRequest(new { message = $"Both 'time' and 'duration' must be specified together. Missing: '{missing}'." });
+        }
+
         try
         {
-            var restaurant = await restaurantsService.GetRestaurantDetailAsync(id);
+            var restaurant = await restaurantsService.GetRestaurantDetailAsync(id, time, duration);
             return Ok(restaurant);
         }
         catch (KeyNotFoundException ex)

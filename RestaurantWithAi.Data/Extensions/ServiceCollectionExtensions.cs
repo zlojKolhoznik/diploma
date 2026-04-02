@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IRestaurantRepository, RestaurantRepository>();
             services.AddScoped<IWaiterRepository, WaiterRepository>();
             services.AddScoped<ITableRepository, TableRepository>();
+            services.AddScoped<IReservationRepository, ReservationRepository>();
             services.AddDbContext<RestaurantDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
             return services;
         }
