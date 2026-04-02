@@ -13,6 +13,12 @@ public class TableService(ITableRepository tableRepository, IMapper mapper) : IT
         return mapper.Map<IEnumerable<TableBrief>>(tables);
     }
 
+    public async Task<IEnumerable<TableBrief>> GetAvailableTablesAsync(Guid restaurantId, DateTimeOffset time, int durationMinutes)
+    {
+        var tables = await tableRepository.GetAvailableTablesAsync(restaurantId, time, durationMinutes);
+        return mapper.Map<IEnumerable<TableBrief>>(tables);
+    }
+
     public async Task AddTableAsync(Guid restaurantId, AddTableRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);

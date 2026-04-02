@@ -1,4 +1,4 @@
-﻿using RestaurantWithAi.Core.Entities;
+using RestaurantWithAi.Core.Entities;
 
 namespace RestaurantWithAi.Core.Contracts;
 
@@ -9,5 +9,6 @@ public interface IRestaurantRepository
     Task AddRestaurantAsync(Restaurant restaurant);
     Task UpdateRestaurantAsync(Restaurant restaurant);
     Task DeleteRestaurantAsync(Guid id);
+    Task<bool> HasAvailableTablesAsync(Guid restaurantId, DateTimeOffset startTime, int durationMinutes);
 }
 

@@ -1,9 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using RestaurantWithAi.Core.Services;
 using RestaurantWithAi.Shared.Auth;
 using RestaurantWithAi.Shared.Waiters;
 using RestaurantWithAi.Shared.Dishes;
+using RestaurantWithAi.Shared.Reservations;
 using RestaurantWithAi.Shared.Restaurants;
 using RestaurantWithAi.Shared.Tables;
 
@@ -20,6 +21,7 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IDishesService, DishService>();
             services.AddScoped<IRestaurantsService, RestaurantService>();
             services.AddScoped<ITablesService, TableService>();
+            services.AddScoped<IReservationsService, ReservationService>();
             return services;
         }
 }
