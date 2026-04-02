@@ -8,8 +8,10 @@ public class RestaurantMappingProfile : Profile
 {
     public RestaurantMappingProfile()
     {
-        CreateMap<Restaurant, RestaurantBrief>();
-        CreateMap<Restaurant, RestaurantDetail>();
+        CreateMap<Restaurant, RestaurantBrief>()
+            .ForMember(destination => destination.HasAvailablePlaces, options => options.Ignore());
+        CreateMap<Restaurant, RestaurantDetail>()
+            .ForMember(destination => destination.HasAvailablePlaces, options => options.Ignore());
         CreateMap<CreateRestaurantRequest, Restaurant>()
             .ForMember(destination => destination.Id, options => options.Ignore())
             .ForMember(destination => destination.AvailableDishes, options => options.Ignore())

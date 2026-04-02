@@ -6,7 +6,7 @@ namespace RestaurantWithAi.Data.Repositories;
 
 public class RestaurantRepository(RestaurantDbContext dbContext) : IRestaurantRepository
 {
-    public async Task<IEnumerable<Restaurant>> GetAllRestaurantsAsync(string? city = null)
+    public async Task<IEnumerable<Restaurant>> GetAllRestaurantsAsync(string? city = null, DateTime? time = null, int? durationMinutes = null)
     {
         var restaurantsQuery = dbContext.Restaurants
             .AsNoTracking()
@@ -25,11 +25,12 @@ public class RestaurantRepository(RestaurantDbContext dbContext) : IRestaurantRe
         return await restaurantsQuery.ToListAsync();
     }
 
-    public async Task<Restaurant> GetRestaurantByIdAsync(Guid id) => await dbContext.Restaurants
-                                                                    .AsNoTracking()
-                                                                    .Include(r => r.AvailableDishes)
-                                                                    .FirstOrDefaultAsync(r => r.Id == id)
-                                                                ?? throw new KeyNotFoundException($"Restaurant with ID {id} not found");
+    public async Task<Restaurant> GetRestaurantByIdAsync(Guid id, DateTime? time = null, int? durationMinutes = null) =>
+        await dbContext.Restaurants
+            .AsNoTracking()
+            .Include(r => r.AvailableDishes)
+            .FirstOrDefaultAsync(r => r.Id == id)
+        ?? throw new KeyNotFoundException($"Restaurant with ID {id} not found");
 
     public async Task AddRestaurantAsync(Restaurant restaurant)
     {

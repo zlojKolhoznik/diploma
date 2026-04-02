@@ -11,13 +11,22 @@ public class RestaurantsController(IRestaurantsService restaurantsService, ILogg
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<RestaurantBrief>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<RestaurantBrief>>> GetRestaurants([FromQuery] string? city)
+    public async Task<ActionResult<IEnumerable<RestaurantBrief>>> GetRestaurants(
+        [FromQuery] string? city,
+        [FromQuery] DateTime? time,
+        [FromQuery(Name = "duration")] int? durationMinutes)
     {
         try
         {
-            var restaurants = await restaurantsService.GetRestaurantsAsync(city);
+            var restaurants = await restaurantsService.GetRestaurantsAsync(city, time, durationMinutes);
             return Ok(restaurants);
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogInformation(ex, "Invalid restaurants query parameters.");
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -30,13 +39,22 @@ public class RestaurantsController(IRestaurantsService restaurantsService, ILogg
     [AllowAnonymous]
     [ProducesResponseType(typeof(RestaurantDetail), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<RestaurantDetail>> GetRestaurant(Guid id)
+    public async Task<ActionResult<RestaurantDetail>> GetRestaurant(
+        Guid id,
+        [FromQuery] DateTime? time,
+        [FromQuery(Name = "duration")] int? durationMinutes)
     {
         try
         {
-            var restaurant = await restaurantsService.GetRestaurantDetailAsync(id);
+            var restaurant = await restaurantsService.GetRestaurantDetailAsync(id, time, durationMinutes);
             return Ok(restaurant);
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogInformation(ex, "Invalid restaurant detail query parameters for id {RestaurantId}.", id);
+            return BadRequest(new { message = ex.Message });
         }
         catch (KeyNotFoundException ex)
         {
