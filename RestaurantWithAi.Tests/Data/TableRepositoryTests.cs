@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RestaurantWithAi.Core.Entities;
 using RestaurantWithAi.Data;
 using RestaurantWithAi.Data.Repositories;
+using RestaurantWithAi.Shared.Reservations;
 
 namespace RestaurantWithAi.Tests.Data;
 
@@ -201,6 +202,59 @@ public class TableRepositoryTests
 
     #endregion
 
+    #region GetAvailableTablesAsync
+
+    [Fact]
+    public async Task GetAvailableTablesAsync_WhenNoReservations_ReturnsAllTables()
+    {
+        await using var context = CreateContext();
+        var restaurant = CreateRestaurant("Kyiv", "Address 1");
+        context.Restaurants.Add(restaurant);
+        context.Tables.AddRange(
+            CreateTable(1, 4, restaurant.Id),
+            CreateTable(2, 2, restaurant.Id));
+        await context.SaveChangesAsync();
+
+        var sut = CreateSut(context);
+
+        var result = (await sut.GetAvailableTablesAsync(restaurant.Id, DateTime.UtcNow.AddHours(1), 60)).ToList();
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task GetAvailableTablesAsync_WhenTableHasOverlappingReservation_ExcludesOccupiedTable()
+    {
+        await using var context = CreateContext();
+        var restaurant = CreateRestaurant("Kyiv", "Address 1");
+        context.Restaurants.Add(restaurant);
+        context.Tables.AddRange(
+            CreateTable(1, 4, restaurant.Id),
+            CreateTable(2, 2, restaurant.Id));
+        var startTime = DateTime.UtcNow.AddHours(2);
+        context.Reservations.Add(CreateReservation(restaurant.Id, 1, startTime, 60));
+        await context.SaveChangesAsync();
+
+        var sut = CreateSut(context);
+
+        var result = (await sut.GetAvailableTablesAsync(restaurant.Id, startTime, 60)).ToList();
+
+        Assert.Single(result);
+        Assert.Equal(2, result[0].TableNumber);
+    }
+
+    [Fact]
+    public async Task GetAvailableTablesAsync_WhenRestaurantDoesNotExist_ThrowsKeyNotFoundException()
+    {
+        await using var context = CreateContext();
+        var sut = CreateSut(context);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            sut.GetAvailableTablesAsync(Guid.NewGuid(), DateTime.UtcNow.AddHours(1), 60));
+    }
+
+    #endregion
+
     private static TableRepository CreateSut(RestaurantDbContext context)
     {
         return new TableRepository(context);
@@ -214,6 +268,21 @@ public class TableRepositoryTests
     private static Table CreateTable(int tableNumber, int seats, Guid restaurantId)
     {
         return new Table { TableNumber = tableNumber, Seats = seats, RestaurantId = restaurantId };
+    }
+
+    private static Reservation CreateReservation(Guid restaurantId, int tableNumber, DateTime startTime, int durationMinutes)
+    {
+        return new Reservation
+        {
+            Id = Guid.NewGuid(),
+            RestaurantId = restaurantId,
+            TableNumber = tableNumber,
+            GuestName = "Test Guest",
+            StartTime = startTime,
+            DurationMinutes = durationMinutes,
+            NumberOfGuests = 2,
+            Status = ReservationStatus.Created
+        };
     }
 
     private static Restaurant CreateRestaurant(string city, string address)

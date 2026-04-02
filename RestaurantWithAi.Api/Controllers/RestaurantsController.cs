@@ -11,12 +11,19 @@ public class RestaurantsController(IRestaurantsService restaurantsService, ILogg
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<RestaurantBrief>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<RestaurantBrief>>> GetRestaurants([FromQuery] string? city)
+    public async Task<ActionResult<IEnumerable<RestaurantBrief>>> GetRestaurants([FromQuery] string? city, [FromQuery] DateTime? time, [FromQuery] int? duration)
     {
+        if ((time == null) != (duration == null))
+        {
+            var missing = time == null ? "'time'" : "'duration'";
+            return BadRequest(new { message = $"{missing} query parameter is required when the other is specified." });
+        }
+
         try
         {
-            var restaurants = await restaurantsService.GetRestaurantsAsync(city);
+            var restaurants = await restaurantsService.GetRestaurantsAsync(city, time, duration);
             return Ok(restaurants);
         }
         catch (Exception ex)
@@ -29,13 +36,20 @@ public class RestaurantsController(IRestaurantsService restaurantsService, ILogg
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(RestaurantDetail), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<RestaurantDetail>> GetRestaurant(Guid id)
+    public async Task<ActionResult<RestaurantDetail>> GetRestaurant(Guid id, [FromQuery] DateTime? time, [FromQuery] int? duration)
     {
+        if ((time == null) != (duration == null))
+        {
+            var missing = time == null ? "'time'" : "'duration'";
+            return BadRequest(new { message = $"{missing} query parameter is required when the other is specified." });
+        }
+
         try
         {
-            var restaurant = await restaurantsService.GetRestaurantDetailAsync(id);
+            var restaurant = await restaurantsService.GetRestaurantDetailAsync(id, time, duration);
             return Ok(restaurant);
         }
         catch (KeyNotFoundException ex)

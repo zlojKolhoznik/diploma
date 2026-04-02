@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RestaurantWithAi.Core.Contracts;
 using RestaurantWithAi.Core.Entities;
+using RestaurantWithAi.Shared.Reservations;
 
 namespace RestaurantWithAi.Data.Repositories;
 
@@ -15,6 +16,30 @@ public class TableRepository(RestaurantDbContext dbContext) : ITableRepository
         return await dbContext.Tables
             .AsNoTracking()
             .Where(t => t.RestaurantId == restaurantId)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Table>> GetAvailableTablesAsync(Guid restaurantId, DateTime startTime, int durationMinutes)
+    {
+        var restaurantExists = await dbContext.Restaurants.AnyAsync(r => r.Id == restaurantId);
+        if (!restaurantExists)
+            throw new KeyNotFoundException($"Restaurant with ID {restaurantId} not found");
+
+        var windowStart = startTime.AddMinutes(-15);
+        var windowEnd = startTime.AddMinutes(durationMinutes + 15);
+
+        var occupiedTableNumbers = await dbContext.Reservations
+            .Where(r => r.RestaurantId == restaurantId
+                        && r.Status != ReservationStatus.Closed
+                        && r.StartTime < windowEnd
+                        && r.StartTime.AddMinutes(r.DurationMinutes) > windowStart)
+            .Select(r => r.TableNumber)
+            .Distinct()
+            .ToListAsync();
+
+        return await dbContext.Tables
+            .AsNoTracking()
+            .Where(t => t.RestaurantId == restaurantId && !occupiedTableNumbers.Contains(t.TableNumber))
             .ToListAsync();
     }
 

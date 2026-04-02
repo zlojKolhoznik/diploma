@@ -9,6 +9,7 @@ public class RestaurantDbContext : DbContext
     public DbSet<Restaurant> Restaurants { get; set; }
     public DbSet<Waiter> Waiters { get; set; }
     public DbSet<Table> Tables { get; set; }
+    public DbSet<Reservation> Reservations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,6 +19,7 @@ public class RestaurantDbContext : DbContext
         ConfigureDishAvailabilityRelationship(modelBuilder);
         ConfigureWaitersTable(modelBuilder);
         ConfigureTablesTable(modelBuilder);
+        ConfigureReservationsTable(modelBuilder);
     }
 
     private static void ConfigureDishesTable(ModelBuilder modelBuilder)
@@ -72,5 +74,30 @@ public class RestaurantDbContext : DbContext
             .WithMany(r => r.Tables)
             .HasForeignKey(t => t.RestaurantId)
             .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    private static void ConfigureReservationsTable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Reservation>().ToTable("Reservations");
+        modelBuilder.Entity<Reservation>().HasKey(r => r.Id);
+        modelBuilder.Entity<Reservation>().Property(r => r.GuestName).IsRequired().HasMaxLength(200);
+        modelBuilder.Entity<Reservation>().Property(r => r.GuestUserId).HasMaxLength(200);
+        modelBuilder.Entity<Reservation>().Property(r => r.AssignedWaiterId).HasMaxLength(200);
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.Restaurant)
+            .WithMany()
+            .HasForeignKey(r => r.RestaurantId)
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.Table)
+            .WithMany()
+            .HasForeignKey(r => new { r.RestaurantId, r.TableNumber })
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.AssignedWaiter)
+            .WithMany()
+            .HasForeignKey(r => r.AssignedWaiterId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
     }
 }

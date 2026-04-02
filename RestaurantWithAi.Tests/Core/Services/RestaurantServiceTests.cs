@@ -161,7 +161,7 @@ public class RestaurantServiceTests
         repositoryMock.Verify(r => r.DeleteRestaurantAsync(restaurantId), Times.Once);
     }
 
-    private static RestaurantService CreateSut(IRestaurantRepository repository)
+    private static RestaurantService CreateSut(IRestaurantRepository repository, ITableRepository? tableRepository = null)
     {
         var mapperConfiguration = new MapperConfiguration(cfg =>
         {
@@ -169,7 +169,8 @@ public class RestaurantServiceTests
             cfg.AddProfile<RestaurantMappingProfile>();
         });
         var mapper = mapperConfiguration.CreateMapper();
-        return new RestaurantService(repository, mapper);
+        var tableRepo = tableRepository ?? new Mock<ITableRepository>().Object;
+        return new RestaurantService(repository, tableRepo, mapper);
     }
 
     private static Restaurant CreateRestaurant(string city, string address)

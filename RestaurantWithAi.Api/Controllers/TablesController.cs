@@ -9,6 +9,37 @@ namespace RestaurantWithAi.Api.Controllers;
 [Authorize(Roles = "Admin")]
 public class TablesController(ITablesService tablesService, ILogger<TablesController> logger) : ControllerBase
 {
+    [HttpGet("available")]
+    [ProducesResponseType(typeof(IEnumerable<TableBrief>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<TableBrief>>> GetAvailableTables(Guid restaurantId, [FromQuery] DateTime? time, [FromQuery] int? duration)
+    {
+        if (time == null && duration == null)
+            return BadRequest(new { message = "Both 'time' and 'duration' query parameters are required." });
+        if (time == null)
+            return BadRequest(new { message = "'time' query parameter is required." });
+        if (duration == null)
+            return BadRequest(new { message = "'duration' query parameter is required." });
+
+        try
+        {
+            var tables = await tablesService.GetAvailableTablesAsync(restaurantId, time.Value, duration.Value);
+            return Ok(tables);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            logger.LogInformation(ex, "Restaurant with id {RestaurantId} was not found.", restaurantId);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while retrieving available tables for restaurant {RestaurantId}.", restaurantId);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+        }
+    }
+
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<TableBrief>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

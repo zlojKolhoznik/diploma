@@ -5,18 +5,37 @@ using RestaurantWithAi.Shared.Restaurants;
 
 namespace RestaurantWithAi.Core.Services;
 
-public class RestaurantService(IRestaurantRepository restaurantRepository, IMapper mapper) : IRestaurantsService
+public class RestaurantService(IRestaurantRepository restaurantRepository, ITableRepository tableRepository, IMapper mapper) : IRestaurantsService
 {
-    public async Task<IEnumerable<RestaurantBrief>> GetRestaurantsAsync(string? city = null)
+    public async Task<IEnumerable<RestaurantBrief>> GetRestaurantsAsync(string? city = null, DateTime? time = null, int? durationMinutes = null)
     {
         var restaurants = await restaurantRepository.GetAllRestaurantsAsync(city);
-        return mapper.Map<IEnumerable<RestaurantBrief>>(restaurants);
+        var briefs = mapper.Map<IEnumerable<RestaurantBrief>>(restaurants).ToList();
+
+        if (time.HasValue && durationMinutes.HasValue)
+        {
+            foreach (var brief in briefs)
+            {
+                var available = await tableRepository.GetAvailableTablesAsync(brief.Id, time.Value, durationMinutes.Value);
+                brief.HasAvailablePlaces = available.Any();
+            }
+        }
+
+        return briefs;
     }
 
-    public async Task<RestaurantDetail> GetRestaurantDetailAsync(Guid id)
+    public async Task<RestaurantDetail> GetRestaurantDetailAsync(Guid id, DateTime? time = null, int? durationMinutes = null)
     {
         var restaurant = await restaurantRepository.GetRestaurantByIdAsync(id);
-        return mapper.Map<RestaurantDetail>(restaurant);
+        var detail = mapper.Map<RestaurantDetail>(restaurant);
+
+        if (time.HasValue && durationMinutes.HasValue)
+        {
+            var available = await tableRepository.GetAvailableTablesAsync(id, time.Value, durationMinutes.Value);
+            detail.HasAvailablePlaces = available.Any();
+        }
+
+        return detail;
     }
 
     public async Task CreateRestaurantAsync(CreateRestaurantRequest request)

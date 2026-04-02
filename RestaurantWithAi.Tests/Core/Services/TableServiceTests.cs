@@ -211,6 +211,49 @@ public class TableServiceTests
 
     #endregion
 
+    #region GetAvailableTablesAsync
+
+    [Fact]
+    public async Task GetAvailableTablesAsync_WhenRepositoryReturnsTables_ReturnsMappedCollection()
+    {
+        var repositoryMock = new Mock<ITableRepository>();
+        var restaurantId = Guid.NewGuid();
+        var startTime = DateTime.UtcNow.AddHours(1);
+        var tables = new List<Table>
+        {
+            CreateTable(1, 4, restaurantId),
+            CreateTable(2, 2, restaurantId)
+        };
+
+        repositoryMock
+            .Setup(r => r.GetAvailableTablesAsync(restaurantId, startTime, 60))
+            .ReturnsAsync(tables);
+
+        var sut = CreateSut(repositoryMock.Object);
+
+        var result = (await sut.GetAvailableTablesAsync(restaurantId, startTime, 60)).ToList();
+
+        Assert.Equal(2, result.Count);
+        repositoryMock.Verify(r => r.GetAvailableTablesAsync(restaurantId, startTime, 60), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAvailableTablesAsync_WhenRestaurantNotFound_PropagatesKeyNotFoundException()
+    {
+        var repositoryMock = new Mock<ITableRepository>();
+        var restaurantId = Guid.NewGuid();
+
+        repositoryMock
+            .Setup(r => r.GetAvailableTablesAsync(restaurantId, It.IsAny<DateTime>(), It.IsAny<int>()))
+            .ThrowsAsync(new KeyNotFoundException($"Restaurant with ID {restaurantId} not found"));
+
+        var sut = CreateSut(repositoryMock.Object);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => sut.GetAvailableTablesAsync(restaurantId, DateTime.UtcNow, 60));
+    }
+
+    #endregion
+
     private static TableService CreateSut(ITableRepository repository)
     {
         var mapperConfiguration = new MapperConfiguration(cfg => cfg.AddProfile<TableMappingProfile>());
