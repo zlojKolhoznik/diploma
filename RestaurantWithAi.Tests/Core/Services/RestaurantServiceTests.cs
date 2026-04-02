@@ -16,46 +16,49 @@ public class RestaurantServiceTests
     public async Task GetRestaurantsAsync_WhenRepositoryReturnsRestaurants_ReturnsMappedRestaurantBriefCollection()
     {
         var repositoryMock = new Mock<IRestaurantRepository>();
+        var tableRepositoryMock = new Mock<ITableRepository>();
         var restaurantOne = CreateRestaurant("Kyiv", "Address 1");
         var restaurantTwo = CreateRestaurant("Lviv", "Address 2");
 
         repositoryMock
-            .Setup(r => r.GetAllRestaurantsAsync(null))
+            .Setup(r => r.GetAllRestaurantsAsync(null, null, null))
             .ReturnsAsync(new List<Restaurant> { restaurantOne, restaurantTwo });
 
-        var sut = CreateSut(repositoryMock.Object);
+        var sut = CreateSut(repositoryMock.Object, tableRepositoryMock.Object);
 
         var result = (await sut.GetRestaurantsAsync()).ToList();
 
         Assert.Equal(2, result.Count);
         Assert.Contains(result, r => r.Id == restaurantOne.Id && r.City == "Kyiv");
         Assert.Contains(result, r => r.Id == restaurantTwo.Id && r.Address == "Address 2");
-        repositoryMock.Verify(r => r.GetAllRestaurantsAsync(null), Times.Once);
+        repositoryMock.Verify(r => r.GetAllRestaurantsAsync(null, null, null), Times.Once);
     }
 
     [Fact]
     public async Task GetRestaurantsAsync_WhenCityIsProvided_DelegatesFilterToRepository()
     {
         var repositoryMock = new Mock<IRestaurantRepository>();
+        var tableRepositoryMock = new Mock<ITableRepository>();
         var city = "Kyiv";
 
         repositoryMock
-            .Setup(r => r.GetAllRestaurantsAsync(city))
+            .Setup(r => r.GetAllRestaurantsAsync(city, null, null))
             .ReturnsAsync(new List<Restaurant> { CreateRestaurant(city, "Address 1") });
 
-        var sut = CreateSut(repositoryMock.Object);
+        var sut = CreateSut(repositoryMock.Object, tableRepositoryMock.Object);
 
         var result = (await sut.GetRestaurantsAsync(city)).ToList();
 
         Assert.Single(result);
         Assert.Equal(city, result[0].City);
-        repositoryMock.Verify(r => r.GetAllRestaurantsAsync(city), Times.Once);
+        repositoryMock.Verify(r => r.GetAllRestaurantsAsync(city, null, null), Times.Once);
     }
 
     [Fact]
     public async Task GetRestaurantDetailAsync_WhenRestaurantExists_ReturnsMappedRestaurantDetail()
     {
         var repositoryMock = new Mock<IRestaurantRepository>();
+        var tableRepositoryMock = new Mock<ITableRepository>();
         var restaurant = CreateRestaurant("Kyiv", "Address 1");
         restaurant.AvailableDishes.Add(new Dish
         {
@@ -67,24 +70,25 @@ public class RestaurantServiceTests
         });
 
         repositoryMock
-            .Setup(r => r.GetRestaurantByIdAsync(restaurant.Id))
+            .Setup(r => r.GetRestaurantByIdAsync(restaurant.Id, null, null))
             .ReturnsAsync(restaurant);
 
-        var sut = CreateSut(repositoryMock.Object);
+        var sut = CreateSut(repositoryMock.Object, tableRepositoryMock.Object);
 
         var result = await sut.GetRestaurantDetailAsync(restaurant.Id);
 
         Assert.Equal(restaurant.Id, result.Id);
         Assert.Equal("Kyiv", result.City);
         Assert.Single(result.AvailableDishes);
-        repositoryMock.Verify(r => r.GetRestaurantByIdAsync(restaurant.Id), Times.Once);
+        repositoryMock.Verify(r => r.GetRestaurantByIdAsync(restaurant.Id, null, null), Times.Once);
     }
 
     [Fact]
     public async Task CreateRestaurantAsync_WhenRequestIsNull_ThrowsArgumentNullException()
     {
         var repositoryMock = new Mock<IRestaurantRepository>(MockBehavior.Strict);
-        var sut = CreateSut(repositoryMock.Object);
+        var tableRepositoryMock = new Mock<ITableRepository>(MockBehavior.Strict);
+        var sut = CreateSut(repositoryMock.Object, tableRepositoryMock.Object);
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => sut.CreateRestaurantAsync(null!));
         repositoryMock.Verify(r => r.AddRestaurantAsync(It.IsAny<Restaurant>()), Times.Never);
@@ -94,6 +98,7 @@ public class RestaurantServiceTests
     public async Task CreateRestaurantAsync_WhenRequestIsValid_MapsAndDelegatesToRepository()
     {
         var repositoryMock = new Mock<IRestaurantRepository>();
+        var tableRepositoryMock = new Mock<ITableRepository>();
         Restaurant? capturedRestaurant = null;
 
         repositoryMock
@@ -101,7 +106,7 @@ public class RestaurantServiceTests
             .Callback<Restaurant>(restaurant => capturedRestaurant = restaurant)
             .Returns(Task.CompletedTask);
 
-        var sut = CreateSut(repositoryMock.Object);
+        var sut = CreateSut(repositoryMock.Object, tableRepositoryMock.Object);
 
         await sut.CreateRestaurantAsync(new CreateRestaurantRequest
         {
@@ -120,6 +125,7 @@ public class RestaurantServiceTests
     public async Task UpdateRestaurantAsync_WhenRequestIsValid_UsesProvidedIdAndDelegatesToRepository()
     {
         var repositoryMock = new Mock<IRestaurantRepository>();
+        var tableRepositoryMock = new Mock<ITableRepository>();
         Restaurant? capturedRestaurant = null;
         var restaurantId = Guid.NewGuid();
 
@@ -128,7 +134,7 @@ public class RestaurantServiceTests
             .Callback<Restaurant>(restaurant => capturedRestaurant = restaurant)
             .Returns(Task.CompletedTask);
 
-        var sut = CreateSut(repositoryMock.Object);
+        var sut = CreateSut(repositoryMock.Object, tableRepositoryMock.Object);
 
         await sut.UpdateRestaurantAsync(restaurantId, new CreateRestaurantRequest
         {
@@ -148,20 +154,32 @@ public class RestaurantServiceTests
     public async Task DeleteRestaurantAsync_WhenCalled_DelegatesToRepository()
     {
         var repositoryMock = new Mock<IRestaurantRepository>();
+        var tableRepositoryMock = new Mock<ITableRepository>();
         var restaurantId = Guid.NewGuid();
 
         repositoryMock
             .Setup(r => r.DeleteRestaurantAsync(restaurantId))
             .Returns(Task.CompletedTask);
 
-        var sut = CreateSut(repositoryMock.Object);
+        var sut = CreateSut(repositoryMock.Object, tableRepositoryMock.Object);
 
         await sut.DeleteRestaurantAsync(restaurantId);
 
         repositoryMock.Verify(r => r.DeleteRestaurantAsync(restaurantId), Times.Once);
     }
 
-    private static RestaurantService CreateSut(IRestaurantRepository repository)
+    [Fact]
+    public async Task GetRestaurantDetailAsync_WhenOnlyDurationProvided_ThrowsArgumentException()
+    {
+        var repositoryMock = new Mock<IRestaurantRepository>(MockBehavior.Strict);
+        var tableRepositoryMock = new Mock<ITableRepository>(MockBehavior.Strict);
+        var sut = CreateSut(repositoryMock.Object, tableRepositoryMock.Object);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            sut.GetRestaurantDetailAsync(Guid.NewGuid(), null, 60));
+    }
+
+    private static RestaurantService CreateSut(IRestaurantRepository repository, ITableRepository tableRepository)
     {
         var mapperConfiguration = new MapperConfiguration(cfg =>
         {
@@ -169,7 +187,7 @@ public class RestaurantServiceTests
             cfg.AddProfile<RestaurantMappingProfile>();
         });
         var mapper = mapperConfiguration.CreateMapper();
-        return new RestaurantService(repository, mapper);
+        return new RestaurantService(repository, tableRepository, mapper);
     }
 
     private static Restaurant CreateRestaurant(string city, string address)

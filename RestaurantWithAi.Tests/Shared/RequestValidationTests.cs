@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using RestaurantWithAi.Shared.Auth;
 using RestaurantWithAi.Shared.Dishes;
 using RestaurantWithAi.Shared.Options;
+using RestaurantWithAi.Shared.Reservations;
 using RestaurantWithAi.Shared.Restaurants;
 
 namespace RestaurantWithAi.Tests.Shared;
@@ -88,6 +89,22 @@ public class RequestValidationTests
         var results = Validate(options);
 
         Assert.Contains(results, r => r.MemberNames.Contains(nameof(AwsCognitoOptions.ClientSecret)));
+    }
+
+    [Fact]
+    public void CreateReservationRequest_WhenDurationIsTooShort_FailsValidation()
+    {
+        var request = new CreateReservationRequest
+        {
+            RestaurantId = Guid.NewGuid(),
+            StartTime = DateTime.UtcNow,
+            ApproximateDurationMinutes = 5,
+            NumberOfGuests = 2
+        };
+
+        var results = Validate(request);
+
+        Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateReservationRequest.ApproximateDurationMinutes)));
     }
 
     private static List<ValidationResult> Validate(object model)
