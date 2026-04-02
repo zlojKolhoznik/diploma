@@ -5,6 +5,7 @@ using RestaurantWithAi.Shared.Dishes;
 using RestaurantWithAi.Shared.Options;
 using RestaurantWithAi.Shared.Reservations;
 using RestaurantWithAi.Shared.Restaurants;
+using RestaurantWithAi.Shared.Orders;
 
 namespace RestaurantWithAi.Tests.Shared;
 
@@ -107,6 +108,33 @@ public class RequestValidationTests
         Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateReservationRequest.ApproximateDurationMinutes)));
     }
 
+    [Fact]
+    public void AddOrderItemRequest_WhenQuantityIsZero_FailsValidation()
+    {
+        var request = new AddOrderItemRequest
+        {
+            DishId = Guid.NewGuid(),
+            Quantity = 0
+        };
+
+        var results = Validate(request);
+
+        Assert.Contains(results, r => r.MemberNames.Contains(nameof(AddOrderItemRequest.Quantity)));
+    }
+
+    [Fact]
+    public void CreateOrderRequest_WhenItemsMissing_FailsValidation()
+    {
+        var request = new CreateOrderRequest
+        {
+            Items = []
+        };
+
+        var results = Validate(request);
+
+        Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateOrderRequest.Items)));
+    }
+
     private static List<ValidationResult> Validate(object model)
     {
         var context = new ValidationContext(model);
@@ -115,4 +143,3 @@ public class RequestValidationTests
         return results;
     }
 }
-
