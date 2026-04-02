@@ -10,6 +10,8 @@ public class RestaurantDbContext : DbContext
     public DbSet<Waiter> Waiters { get; set; }
     public DbSet<Table> Tables { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,6 +22,8 @@ public class RestaurantDbContext : DbContext
         ConfigureWaitersTable(modelBuilder);
         ConfigureTablesTable(modelBuilder);
         ConfigureReservationsTable(modelBuilder);
+        ConfigureOrdersTable(modelBuilder);
+        ConfigureOrderItemsTable(modelBuilder);
     }
 
     private static void ConfigureDishesTable(ModelBuilder modelBuilder)
@@ -100,5 +104,49 @@ public class RestaurantDbContext : DbContext
 
         modelBuilder.Entity<Reservation>()
             .HasIndex(r => new { r.RestaurantId, r.TableNumber, r.StartTime });
+    }
+
+    private static void ConfigureOrdersTable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Order>().ToTable("Orders");
+        modelBuilder.Entity<Order>().HasKey(o => o.Id);
+        modelBuilder.Entity<Order>().Property(o => o.Status).IsRequired().HasMaxLength(50);
+        modelBuilder.Entity<Order>().Property(o => o.Notes).HasMaxLength(500);
+
+        modelBuilder.Entity<Order>()
+            .HasOne(o => o.Reservation)
+            .WithMany(r => r.Orders)
+            .HasForeignKey(o => o.ReservationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Order>()
+            .HasOne(o => o.Restaurant)
+            .WithMany()
+            .HasForeignKey(o => o.RestaurantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => new { o.RestaurantId, o.ReservationId, o.Status });
+    }
+
+    private static void ConfigureOrderItemsTable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<OrderItem>().ToTable("OrderItems");
+        modelBuilder.Entity<OrderItem>().HasKey(i => i.Id);
+        modelBuilder.Entity<OrderItem>().Property(i => i.DishName).IsRequired().HasMaxLength(150);
+        modelBuilder.Entity<OrderItem>().Property(i => i.Notes).HasMaxLength(300);
+        modelBuilder.Entity<OrderItem>().Property(i => i.UnitPrice).HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<OrderItem>()
+            .HasOne(i => i.Order)
+            .WithMany(o => o.Items)
+            .HasForeignKey(i => i.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<OrderItem>()
+            .HasOne(i => i.Dish)
+            .WithMany(d => d.OrderItems)
+            .HasForeignKey(i => i.DishId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

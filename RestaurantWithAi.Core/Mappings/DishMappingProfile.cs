@@ -12,9 +12,8 @@ public class DishMappingProfile : Profile
         CreateMap<Dish, DishDetail>().ReverseMap();
         CreateMap<CreateDishRequest, Dish>()
             .ForMember(destination => destination.Id, options => options.Ignore())
-            .ForMember(destination => destination.AvailableAtRestaurants, options => options.Ignore());
+            .ForMember(destination => destination.AvailableAtRestaurants, options => options.Ignore())
+            .ForMember(destination => destination.OrderItems, options => options.Ignore());
         CreateMap<Dish, CreateDishRequest>();
     }
 }
-
-

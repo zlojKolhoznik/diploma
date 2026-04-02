@@ -29,4 +29,6 @@ public class Dish
     public required string ImageUrl { get; set; }
 
     public ICollection<Restaurant> AvailableAtRestaurants { get; set; } = new List<Restaurant>();
+
+    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }

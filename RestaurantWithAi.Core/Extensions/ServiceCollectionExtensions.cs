@@ -7,21 +7,23 @@ using RestaurantWithAi.Shared.Dishes;
 using RestaurantWithAi.Shared.Reservations;
 using RestaurantWithAi.Shared.Restaurants;
 using RestaurantWithAi.Shared.Tables;
+using RestaurantWithAi.Shared.Orders;
 
 namespace RestaurantWithAi.Core.Extensions;
 
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
-        public static IServiceCollection AddCoreServices(this IServiceCollection services)
-        {
-            services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
-            services.AddScoped<IAuthService, CognitoAuthService>();
-            services.AddScoped<IWaiterService, WaiterService>();
-            services.AddScoped<IDishesService, DishService>();
-            services.AddScoped<IReservationsService, ReservationService>();
-            services.AddScoped<IRestaurantsService, RestaurantService>();
-            services.AddScoped<ITablesService, TableService>();
-            return services;
-        }
+    public static IServiceCollection AddCoreServices(this IServiceCollection services)
+    {
+        services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
+        services.AddScoped<IAuthService, CognitoAuthService>();
+        services.AddScoped<IWaiterService, WaiterService>();
+        services.AddScoped<IDishesService, DishService>();
+        services.AddScoped<IReservationsService, ReservationService>();
+        services.AddScoped<IRestaurantsService, RestaurantService>();
+        services.AddScoped<ITablesService, TableService>();
+        services.AddScoped<IOrdersService, OrderService>();
+        return services;
+    }
 }
