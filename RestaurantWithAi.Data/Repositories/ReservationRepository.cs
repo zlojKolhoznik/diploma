@@ -57,7 +57,7 @@ public class ReservationRepository(RestaurantDbContext dbContext) : IReservation
                         && (excludeReservationId == null || r.Id != excludeReservationId))
             .AnyAsync(r =>
                 startTime < r.StartTime.AddMinutes(r.DurationMinutes).Add(GapBuffer) &&
-                endTime > r.StartTime.Add(-GapBuffer));
+                endTime > r.StartTime.Subtract(GapBuffer));
     }
 
     public async Task<IEnumerable<int>> GetAvailableTableNumbersAsync(
@@ -79,7 +79,7 @@ public class ReservationRepository(RestaurantDbContext dbContext) : IReservation
                         && r.TableNumber != null
                         && r.Status != ReservationStatus.Cancelled
                         && startTime < r.StartTime.AddMinutes(r.DurationMinutes).Add(GapBuffer)
-                        && endTime > r.StartTime.Add(-GapBuffer))
+                        && endTime > r.StartTime.Subtract(GapBuffer))
             .Select(r => r.TableNumber!.Value)
             .Distinct()
             .ToListAsync();

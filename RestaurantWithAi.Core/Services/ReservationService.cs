@@ -114,23 +114,24 @@ public class ReservationService(IReservationRepository reservationRepository, IM
         await reservationRepository.UpdateReservationAsync(reservation);
     }
 
-    public async Task UpdateReservationStatusAsync(Guid id, UpdateReservationStatusRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-
-        var reservation = await reservationRepository.GetReservationByIdAsync(id);
-
-        var validTransitions = new Dictionary<ReservationStatus, ReservationStatus>
+    private static readonly IReadOnlyDictionary<ReservationStatus, ReservationStatus> ValidStatusTransitions =
+        new Dictionary<ReservationStatus, ReservationStatus>
         {
             { ReservationStatus.Created, ReservationStatus.InProgress },
             { ReservationStatus.InProgress, ReservationStatus.PendingPayment },
             { ReservationStatus.PendingPayment, ReservationStatus.Closed }
         };
 
-        if (!validTransitions.TryGetValue(reservation.Status, out var allowedNext) || allowedNext != request.Status)
+    public async Task UpdateReservationStatusAsync(Guid id, UpdateReservationStatusRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var reservation = await reservationRepository.GetReservationByIdAsync(id);
+
+        if (!ValidStatusTransitions.TryGetValue(reservation.Status, out var allowedNext) || allowedNext != request.Status)
             throw new InvalidOperationException(
                 $"Cannot transition from {reservation.Status} to {request.Status}. " +
-                $"Expected next status: {(validTransitions.TryGetValue(reservation.Status, out var next) ? next : "none")}.");
+                $"Expected next status: {(ValidStatusTransitions.TryGetValue(reservation.Status, out var next) ? next : "none")}.");
 
         reservation.Status = request.Status;
         await reservationRepository.UpdateReservationAsync(reservation);

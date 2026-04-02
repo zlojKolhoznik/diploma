@@ -75,7 +75,7 @@ public class RestaurantRepository(RestaurantDbContext dbContext) : IRestaurantRe
                         && r.TableNumber != null
                         && r.Status != ReservationStatus.Cancelled
                         && startTime < r.StartTime.AddMinutes(r.DurationMinutes).Add(GapBuffer)
-                        && endTime > r.StartTime.Add(-GapBuffer))
+                        && endTime > r.StartTime.Subtract(GapBuffer))
             .Select(r => r.TableNumber!.Value)
             .Distinct()
             .ToListAsync();
