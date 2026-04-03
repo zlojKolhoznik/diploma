@@ -1,10 +1,48 @@
-# Build artifacts
-bin/
-obj/
+# ------------------------------
+# Build output and caches (.NET)
+# ------------------------------
+**/bin/
+**/obj/
+**/TestResults/
+*.trx
+*.coverage
+*.coveragexml
 
-# User-specific files
-appsettings.json
+# ------------------------------
+# Package artifacts
+# ------------------------------
+*.nupkg
+*.snupkg
 
-# Editor files
+# ------------------------------
+# User and IDE-specific files
+# ------------------------------
+.vs/
 .vscode/
 .idea/
+*.user
+*.rsuser
+*.suo
+*.DotSettings.user
+
+# ------------------------------
+# Logs
+# ------------------------------
+*.log
+
+# ------------------------------
+# Frontend artifacts (Angular)
+# ------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/cache/
+frontend/coverage/
+frontend/tmp/
+frontend/out-tsc/
+*.tsbuildinfo
+
+# ------------------------------
+# OS files
+# ------------------------------
+.DS_Store
+Thumbs.db
