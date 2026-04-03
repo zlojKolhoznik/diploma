@@ -18,7 +18,11 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IWaiterRepository, WaiterRepository>();
             services.AddScoped<ITableRepository, TableRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
-            services.AddDbContext<RestaurantDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            var connectionString = configuration.GetConnectionString("LocalConnection")
+                                   ?? configuration.GetConnectionString("DefaultConnection")
+                                   ?? throw new InvalidOperationException("No SQL Server connection string found. Configure 'ConnectionStrings:LocalConnection' or 'ConnectionStrings:DefaultConnection'.");
+
+            services.AddDbContext<RestaurantDbContext>(options => options.UseSqlServer(connectionString));
             return services;
         }
 }

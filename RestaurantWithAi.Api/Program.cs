@@ -2,6 +2,7 @@ using Amazon.CognitoIdentityProvider;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using RestaurantWithAi.Core.Extensions;
 using RestaurantWithAi.Data.Extensions;
 using RestaurantWithAi.Shared.Options;
@@ -13,7 +14,27 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "RestaurantWithAi API",
+        Version = "v1",
+        Description = "API for authentication, restaurants, dishes, reservations, orders, tables, and waiter administration."
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT access token. Example: Bearer {token}"
+    });
+
+    options.OperationFilter<global::RestaurantWithAi.Api.Swagger.AuthorizeOperationFilter>();
+});
 builder.Services
     .AddOptions<AwsCognitoOptions>()
     .Bind(builder.Configuration.GetSection(AwsCognitoOptions.SectionName))

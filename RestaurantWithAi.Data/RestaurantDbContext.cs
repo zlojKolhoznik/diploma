@@ -5,6 +5,14 @@ namespace RestaurantWithAi.Data;
 
 public class RestaurantDbContext : DbContext
 {
+    public RestaurantDbContext()
+    {
+    }
+
+    public RestaurantDbContext(DbContextOptions<RestaurantDbContext> options) : base(options)
+    {
+    }
+
     public DbSet<Dish> Dishes { get; set; }
     public DbSet<Restaurant> Restaurants { get; set; }
     public DbSet<Waiter> Waiters { get; set; }
@@ -99,7 +107,7 @@ public class RestaurantDbContext : DbContext
             .HasOne(r => r.Table)
             .WithMany()
             .HasForeignKey(r => new { r.RestaurantId, r.TableNumber })
-            .OnDelete(DeleteBehavior.SetNull)
+            .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false);
 
         modelBuilder.Entity<Reservation>()

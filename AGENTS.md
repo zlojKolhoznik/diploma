@@ -1,7 +1,7 @@
 ﻿# AGENTS Guide for RestaurantWithAi
 
 ## Scope and source of truth
-- This repository has no existing agent-specific rules (`AGENT.md`, `AGENTS.md`, `.github/copilot-instructions.md`, `.cursorrules`, etc. were not found via glob search).
+- Convention-file glob search currently matches only this file (`AGENTS.md`); no additional agent-instruction files (`AGENT.md`, `.github/copilot-instructions.md`, `.cursorrules`, etc.) are present.
 - Use this file plus code examples as the working conventions for AI changes.
 
 ## Architecture map (clean-ish layering)
@@ -41,11 +41,17 @@
   - `dotnet run --project C:\Users\Roman\source\RestaurantWithAi\RestaurantWithAi.Api\RestaurantWithAi.Api.csproj`
 - Default dev URLs come from `RestaurantWithAi.Api/Properties/launchSettings.json` (`https://localhost:7153`, `http://localhost:5239`).
 
+## Swagger docs locations
+- Swagger is configured in `RestaurantWithAi.Api/Program.cs` (`AddSwaggerGen`, `UseSwagger`, `UseSwaggerUI`), and UI/JSON endpoints are enabled in Development.
+- When running locally with the default launch profile, use `https://localhost:7153/swagger` (UI) and `https://localhost:7153/swagger/v1/swagger.json` (OpenAPI JSON).
+- Generated/openapi artifact is checked in at `RestaurantWithAi.Api/openapi/restaurantwithai.v1.json`.
+- Authorization behavior for secured operations in Swagger is customized in `RestaurantWithAi.Api/Swagger/AuthorizeOperationFilter.cs`.
+
 ## Configuration and integration points
 - Required options section: `AWS` (`Region`, `UserPoolId`, `ClientId`, `Authority`, `ClientSecret`) in `AwsCognitoOptions`.
 - `ClientSecret` is required by `CognitoAuthService.ComputeSecretHash`; missing value fails login/register paths.
-- SQL Server connection string key expected by DI: `ConnectionStrings:DefaultConnection`.
-- `appsettings.json` includes AWS values but currently omits `ClientSecret` and DB connection string; expect user-secrets/environment overrides.
+- SQL Server connection string resolution in DI is `ConnectionStrings:LocalConnection` first, then `ConnectionStrings:DefaultConnection` fallback (`RestaurantWithAi.Data/Extensions/ServiceCollectionExtensions.cs`).
+- `appsettings.json` currently includes `ConnectionStrings:LocalConnection` and AWS values, but still omits `AWS:ClientSecret`; expect user-secrets/environment overrides for secret values.
 
 ## Change checklist for agents
 - Preserve layer boundaries: no EF or AWS calls directly in controllers.

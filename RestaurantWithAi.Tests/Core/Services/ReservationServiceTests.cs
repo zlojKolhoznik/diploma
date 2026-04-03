@@ -31,7 +31,7 @@ public class ReservationServiceTests
         await sut.CreateReservationAsync(new CreateReservationRequest
         {
             RestaurantId = restaurantId,
-            StartTime = DateTime.UtcNow,
+            StartTime = new DateTime(2026, 4, 2, 12, 0, 0, DateTimeKind.Utc),
             ApproximateDurationMinutes = 60,
             NumberOfGuests = 2
         }, "guest-1", isAdminInitiated: false);
