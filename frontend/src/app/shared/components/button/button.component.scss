@@ -1,0 +1,123 @@
+/* ========================================
+   BUTTON COMPONENT - Form & Action Buttons
+   ======================================== */
+
+button {
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--text-base);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: inherit;
+
+  &:focus {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+.btn-full-width {
+  width: 100%;
+}
+
+/* ---- PRIMARY BUTTON ---- */
+.btn-primary {
+  background-color: var(--accent-primary);
+  color: var(--surface-900);
+  box-shadow: 0 0 12px rgba(255, 107, 53, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: var(--accent-primary-hover);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+    transform: translateY(-2px);
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 0 12px rgba(255, 107, 53, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+/* ---- SECONDARY BUTTON ---- */
+.btn-secondary {
+  background-color: var(--surface-700);
+  color: var(--accent-primary);
+  border: 1px solid var(--border-default);
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--surface-600);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary-hover);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+/* ---- LOADING STATE ---- */
+.btn-loading-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.btn-loading-text {
+  display: inline-flex;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

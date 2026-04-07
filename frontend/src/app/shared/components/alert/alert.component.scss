@@ -1,0 +1,96 @@
+/* ========================================
+   ALERT COMPONENT - Status Alerts
+   ======================================== */
+
+div {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+  border-radius: var(--radius-md);
+  animation: slideDownIn 0.3s ease-out;
+  position: relative;
+}
+
+.alert-message {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  flex: 1;
+}
+
+.alert-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: var(--text-lg);
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+/* ---- ERROR VARIANT ---- */
+.alert-error {
+  background-color: color-mix(in srgb, var(--state-error) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--state-error) 25%, transparent);
+  color: var(--text-secondary);
+
+  app-icon {
+    color: var(--state-error);
+  }
+}
+
+/* ---- SUCCESS VARIANT ---- */
+.alert-success {
+  background-color: color-mix(in srgb, #4ade80 8%, transparent);
+  border: 1px solid color-mix(in srgb, #4ade80 25%, transparent);
+  color: var(--text-secondary);
+
+  app-icon {
+    color: #4ade80;
+  }
+}
+
+/* ---- WARNING VARIANT ---- */
+.alert-warning {
+  background-color: color-mix(in srgb, var(--state-warning) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--state-warning) 25%, transparent);
+  color: var(--text-secondary);
+
+  app-icon {
+    color: var(--state-warning);
+  }
+}
+
+/* ---- INFO VARIANT ---- */
+.alert-info {
+  background-color: color-mix(in srgb, var(--state-info) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--state-info) 25%, transparent);
+  color: var(--text-secondary);
+
+  app-icon {
+    color: var(--state-info);
+  }
+}
+
+@keyframes slideDownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,18 @@
+/* ========================================
+   LABEL COMPONENT - Form Labels
+   ======================================== */
+
+.form-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.required-indicator {
+  color: var(--state-error);
+  font-weight: 700;
+}

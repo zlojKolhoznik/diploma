@@ -1,0 +1,9 @@
+<div [class]="alertClass" role="alert" aria-live="polite">
+  <app-icon [name]="iconName" size="md" [ariaHidden]="true"></app-icon>
+  <span class="alert-message">{{ message }}</span>
+  @if (dismissible) {
+    <button type="button" class="alert-close" (click)="onDismiss()" aria-label="Close alert">
+      ✕
+    </button>
+  }
+</div>

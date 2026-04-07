@@ -1,0 +1,94 @@
+<div class="login-wrapper">
+  <!-- Brand Header -->
+  <header class="login-header">
+    <app-logo size="md"></app-logo>
+  </header>
+
+  <!-- Main Content -->
+  <main class="login-main">
+    <!-- Form Card -->
+    <app-card maxWidth="420px">
+      <div class="card-header">
+        <h1 class="card-title">Welcome Back</h1>
+        <p class="card-subtitle">Sign in to your account to continue</p>
+      </div>
+
+      <!-- Form -->
+      <form (ngSubmit)="onSubmit($event)" class="login-form">
+        <!-- Error Message -->
+        @if (errorMessage) {
+          <app-alert variant="error" [message]="errorMessage"></app-alert>
+        }
+
+        <!-- Email Field -->
+        <app-input
+          type="email"
+          id="email"
+          name="email"
+          label="Email Address"
+          placeholder="you@example.com"
+          [(ngModel)]="email"
+          [disabled]="isLoading"
+          autocomplete="email"
+          [error]="emailDirty && !isEmailValid() ? 'Please enter a valid email address' : ''"
+          (blur)="onEmailBlur()"
+        ></app-input>
+
+        <!-- Password Field -->
+        <app-input
+          type="password"
+          id="password"
+          name="password"
+          label="Password"
+          placeholder="••••••••"
+          [(ngModel)]="password"
+          [disabled]="isLoading"
+          autocomplete="current-password"
+          [error]="passwordDirty && !isPasswordValid() ? 'Password must be at least 8 characters' : ''"
+          (blur)="onPasswordBlur()"
+        ></app-input>
+
+        <!-- Remember Me / Forgot Password Row -->
+        <div class="form-actions-row">
+          <app-checkbox
+            label="Remember me"
+            id="remember-me"
+            name="rememberMe"
+            [(ngModel)]="rememberMe"
+            [disabled]="isLoading"
+          ></app-checkbox>
+          <app-link href="#forgot-password" variant="default">Forgot password?</app-link>
+        </div>
+
+        <!-- Submit Button -->
+        <app-button
+          type="submit"
+          variant="primary"
+          [disabled]="!isFormValid()"
+          [loading]="isLoading"
+        >
+          Sign In
+          <span loading>Signing in...</span>
+        </app-button>
+      </form>
+
+      <!-- Divider -->
+      <app-divider text="Don't have an account?"></app-divider>
+
+      <!-- Sign Up Link -->
+      <app-button type="button" variant="secondary" [fullWidth]="true" [routerLink]="['/register']">
+        Create Account
+      </app-button>
+    </app-card>
+  </main>
+
+  <!-- Footer -->
+  <footer class="login-footer">
+    <nav class="footer-nav" aria-label="Footer">
+      <app-link href="#privacy" variant="ghost">Privacy Policy</app-link>
+      <app-link href="#terms" variant="ghost">Terms of Service</app-link>
+      <app-link href="#help" variant="ghost">Help & Support</app-link>
+    </nav>
+    <p class="footer-text">&copy; 2026 Lapti Steaks. All rights reserved.</p>
+  </footer>
+</div>

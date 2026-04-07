@@ -1,0 +1,173 @@
+<div class="register-wrapper">
+  <!-- Brand Header -->
+  <header class="register-header">
+    <app-logo size="sm"></app-logo>
+  </header>
+
+  <!-- Main Content -->
+  <main class="register-main">
+    <!-- Form Card -->
+    <app-card maxWidth="440px">
+      <div class="card-header">
+        <h1 class="card-title">Join Us</h1>
+        <p class="card-subtitle">Create your account to get started</p>
+      </div>
+
+      <!-- Form -->
+      <form (ngSubmit)="onSubmit($event)" class="register-form">
+        <!-- Error Message -->
+        @if (errorMessage) {
+          <app-alert variant="error" [message]="errorMessage"></app-alert>
+        }
+
+        <!-- Success Message -->
+        @if (successMessage) {
+          <app-alert variant="success" [message]="successMessage"></app-alert>
+        }
+
+        <!-- Name Fields Row -->
+        <div class="form-row">
+          <app-input
+            type="text"
+            id="firstName"
+            name="firstName"
+            label="First Name"
+            placeholder="John"
+            [(ngModel)]="firstName"
+            [disabled]="isLoading"
+            autocomplete="given-name"
+            [error]="firstNameDirty && !isFirstNameValid() ? 'First name must be at least 2 characters' : ''"
+            (blur)="onFirstNameBlur()"
+          ></app-input>
+
+          <app-input
+            type="text"
+            id="lastName"
+            name="lastName"
+            label="Last Name"
+            placeholder="Doe"
+            [(ngModel)]="lastName"
+            [disabled]="isLoading"
+            autocomplete="family-name"
+            [error]="lastNameDirty && !isLastNameValid() ? 'Last name must be at least 2 characters' : ''"
+            (blur)="onLastNameBlur()"
+          ></app-input>
+        </div>
+
+        <!-- Email Field -->
+        <app-input
+          type="email"
+          id="email"
+          name="email"
+          label="Email Address"
+          placeholder="you@example.com"
+          [(ngModel)]="email"
+          [disabled]="isLoading"
+          autocomplete="email"
+          [error]="emailDirty && !isEmailValid() ? 'Please enter a valid email address' : ''"
+          (blur)="onEmailBlur()"
+        ></app-input>
+
+        <!-- Password Field -->
+        <app-input
+          type="password"
+          id="password"
+          name="password"
+          label="Password"
+          placeholder="••••••••"
+          [(ngModel)]="password"
+          [disabled]="isLoading"
+          autocomplete="new-password"
+          [error]="passwordDirty && !isPasswordValid() ? 'Password does not meet all requirements' : ''"
+          (blur)="onPasswordBlur()"
+          (input)="onPasswordInput()"
+        ></app-input>
+
+        <!-- Password Requirements List -->
+        @if (passwordDirty && password.length > 0) {
+          <div class="password-requirements">
+            <div class="requirements-label">Password must contain:</div>
+            <ul class="requirements-list">
+              <li [class.requirement-met]="passwordStrength.minLength" [class.requirement-unmet]="!passwordStrength.minLength">
+                <span class="requirement-icon">{{ passwordStrength.minLength ? '✓' : '✗' }}</span>
+                At least 8 characters
+              </li>
+              <li [class.requirement-met]="passwordStrength.hasUppercase" [class.requirement-unmet]="!passwordStrength.hasUppercase">
+                <span class="requirement-icon">{{ passwordStrength.hasUppercase ? '✓' : '✗' }}</span>
+                At least 1 uppercase letter (A-Z)
+              </li>
+              <li [class.requirement-met]="passwordStrength.hasLowercase" [class.requirement-unmet]="!passwordStrength.hasLowercase">
+                <span class="requirement-icon">{{ passwordStrength.hasLowercase ? '✓' : '✗' }}</span>
+                At least 1 lowercase letter (a-z)
+              </li>
+              <li [class.requirement-met]="passwordStrength.hasDigit" [class.requirement-unmet]="!passwordStrength.hasDigit">
+                <span class="requirement-icon">{{ passwordStrength.hasDigit ? '✓' : '✗' }}</span>
+                At least 1 digit (0-9)
+              </li>
+              <li [class.requirement-met]="passwordStrength.hasSpecialChar" [class.requirement-unmet]="!passwordStrength.hasSpecialChar">
+                <span class="requirement-icon">{{ passwordStrength.hasSpecialChar ? '✓' : '✗' }}</span>
+                At least 1 special character (!@#$%^&*...)
+              </li>
+            </ul>
+          </div>
+        }
+
+        <!-- Confirm Password Field -->
+        <app-input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          label="Confirm Password"
+          placeholder="••••••••"
+          [(ngModel)]="confirmPassword"
+          [disabled]="isLoading"
+          autocomplete="new-password"
+          [error]="
+            confirmPasswordDirty && !isConfirmPasswordValid()
+              ? !isPasswordValid()
+                ? 'Password must meet all requirements first'
+                : confirmPassword && password !== confirmPassword
+                ? 'Passwords do not match'
+                : 'Please confirm your password'
+              : ''
+          "
+          (blur)="onConfirmPasswordBlur()"
+        ></app-input>
+
+        <!-- Submit Button -->
+        <app-button
+          type="submit"
+          variant="primary"
+          [disabled]="!isFormValid()"
+          [loading]="isLoading"
+        >
+          Sign Up
+          <span loading>Creating Account...</span>
+        </app-button>
+      </form>
+
+      <!-- Divider -->
+      <app-divider text="Already have an account?"></app-divider>
+
+      <!-- Sign In Link -->
+      <app-button
+        type="button"
+        variant="secondary"
+        [fullWidth]="true"
+        [routerLink]="['/login']"
+      >
+        Sign In
+      </app-button>
+    </app-card>
+  </main>
+
+  <!-- Footer -->
+  <footer class="register-footer">
+    <nav class="footer-nav" aria-label="Footer">
+      <app-link href="#privacy" variant="ghost">Privacy Policy</app-link>
+      <app-link href="#terms" variant="ghost">Terms of Service</app-link>
+      <app-link href="#help" variant="ghost">Help & Support</app-link>
+    </nav>
+    <p class="footer-text">&copy; 2026 Lapti Steaks. All rights reserved.</p>
+  </footer>
+</div>

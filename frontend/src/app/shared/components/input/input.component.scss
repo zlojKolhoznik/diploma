@@ -1,0 +1,89 @@
+/* ========================================
+   INPUT COMPONENT - Form Input Fields
+   ======================================== */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.form-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.required-indicator {
+  color: var(--state-error);
+  font-weight: 700;
+}
+
+.form-input {
+  font-size: var(--text-base);
+  padding: var(--space-md);
+  background-color: var(--surface-700);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: all 0.2s ease;
+
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  &:hover:not(:disabled) {
+    background-color: var(--surface-600);
+    border-color: color-mix(in srgb, var(--border-default) 150%, transparent);
+  }
+
+  &:focus {
+    outline: none;
+    background-color: var(--surface-600);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.form-input-error {
+  border-color: var(--state-error) !important;
+  background-color: color-mix(in srgb, var(--state-error) 5%, var(--surface-700));
+
+  &:focus {
+    border-color: var(--state-error) !important;
+    box-shadow: 0 0 0 3px rgba(255, 100, 100, 0.15) !important;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--state-error) !important;
+  }
+}
+
+.form-error-text {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--state-error);
+  margin-top: var(--space-xs);
+  animation: slideDownIn 0.2s ease-out;
+}
+
+@keyframes slideDownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

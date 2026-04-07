@@ -1,0 +1,30 @@
+/* ========================================
+   DIVIDER COMPONENT - Horizontal Divider
+   ======================================== */
+
+.divider-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-lg) 0;
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--border-default),
+    transparent
+  );
+}
+
+.divider-text {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}

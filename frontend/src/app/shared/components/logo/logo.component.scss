@@ -1,0 +1,37 @@
+/* ========================================
+   LOGO COMPONENT - Brand Logo
+   ======================================== */
+
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+img {
+  height: auto;
+  opacity: 0.95;
+  transition: opacity 0.3s ease;
+
+  &:focus {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 4px;
+    border-radius: var(--radius-md);
+  }
+
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+.logo-sm {
+  max-width: 200px;
+}
+
+.logo-md {
+  max-width: 280px;
+}
+
+.logo-lg {
+  max-width: 360px;
+}

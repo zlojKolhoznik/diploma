@@ -1,0 +1,28 @@
+/* ========================================
+   ICON COMPONENT - Tabler Icons SVG Wrapper
+   ======================================== */
+
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tabler icon component handles SVG rendering */
+tabler-icon {
+  width: 100%;
+  height: 100%;
+}
+
+/* default icon size */
+.icon {
+  width: var(--text-lg);
+  height: var(--text-lg);
+  font-size: var(--text-lg);
+}
+
+.icon-lg {
+  width: var(--text-2xl);
+  height: var(--text-2xl);
+  font-size: var(--text-2xl);
+}

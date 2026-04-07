@@ -1,0 +1,14 @@
+@if (routerLink) {
+  <a [routerLink]="routerLink" [class]="variantClass">
+    <ng-content></ng-content>
+  </a>
+} @else {
+  <a
+    [href]="href"
+    [class]="variantClass"
+    [target]="external ? '_blank' : undefined"
+    [rel]="external ? 'noopener noreferrer' : undefined"
+  >
+    <ng-content></ng-content>
+  </a>
+}

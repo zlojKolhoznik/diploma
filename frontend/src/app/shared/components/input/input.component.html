@@ -1,0 +1,29 @@
+<div class="form-group">
+  @if (label) {
+    <label [htmlFor]="id" class="form-label">
+      {{ label }}
+      @if (required) {
+        <span class="required-indicator">*</span>
+      }
+    </label>
+  }
+  <input
+    [type]="type"
+    [id]="id"
+    [name]="name"
+    [placeholder]="placeholder"
+    [value]="value"
+    [disabled]="disabled"
+    [required]="required"
+    [autocomplete]="autocomplete"
+    [ngClass]="inputClasses"
+    (input)="onValueChange($event.target.value)"
+    (blur)="onBlur()"
+    [attr.aria-describedby]="error && id ? id + '-error' : null"
+  />
+  @if (hasError) {
+    <span [id]="id + '-error'" class="form-error-text">
+      {{ error }}
+    </span>
+  }
+</div>
