@@ -1,0 +1,41 @@
+<div class="home-wrapper">
+  <header class="home-header">
+    <app-logo size="md"></app-logo>
+  </header>
+
+  <main class="home-main">
+    <app-card maxWidth="520px">
+      <div class="card-header">
+        <h1 class="card-title">Home</h1>
+        <p class="card-subtitle">This is the home page.</p>
+      </div>
+
+      <div class="home-actions">
+        <a [routerLink]="['/register']" class="home-action-link">
+          <app-button type="button" variant="primary">
+            Sign Up
+            <app-icon name="user" [ariaHidden]="true"></app-icon>
+          </app-button>
+        </a>
+
+        <a [routerLink]="['/login']" class="home-action-link">
+          <app-button type="button" variant="secondary">
+            Log In
+            <app-icon name="chevron-right" [ariaHidden]="true"></app-icon>
+          </app-button>
+        </a>
+      </div>
+
+      <div class="home-alt-links">
+        <span class="home-alt-text">Or go directly to:</span>
+        <app-link [routerLink]="['/register']">Sign up</app-link>
+        <span class="home-alt-sep">·</span>
+        <app-link [routerLink]="['/login']">Log in</app-link>
+      </div>
+    </app-card>
+  </main>
+
+  <footer class="home-footer">
+    <p class="footer-text">&copy; 2026 Lapti Steaks. All rights reserved.</p>
+  </footer>
+</div>

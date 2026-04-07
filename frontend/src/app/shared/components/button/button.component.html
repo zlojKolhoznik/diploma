@@ -5,12 +5,14 @@
   (click)="onClick($event)"
   [attr.aria-busy]="loading"
 >
-  @if (loading) {
+  <ng-container *ngIf="loading; else contentTpl">
     <span class="btn-loading-spinner"></span>
     <span class="btn-loading-text">
       <ng-content select="[loading]"></ng-content>
     </span>
-  } @else {
+  </ng-container>
+
+  <ng-template #contentTpl>
     <ng-content></ng-content>
-  }
+  </ng-template>
 </button>

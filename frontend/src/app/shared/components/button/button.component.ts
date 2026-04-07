@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 type ButtonVariant = 'primary' | 'secondary';
 type ButtonType = 'button' | 'submit' | 'reset';
@@ -7,7 +8,7 @@ type ButtonType = 'button' | 'submit' | 'reset';
 @Component({
   selector: 'app-button',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './button.component.html',
   styleUrls: ['./button.component.scss'],
 })
@@ -17,6 +18,9 @@ export class ButtonComponent {
   @Input() disabled: boolean = false;
   @Input() loading: boolean = false;
   @Input() fullWidth: boolean = true;
+  // NOTE: kept for backwards compatibility with existing templates,
+  // but this component intentionally does not render <a>.
+  @Input() routerLink?: string | any[];
 
   @Output() click = new EventEmitter<MouseEvent>();
 

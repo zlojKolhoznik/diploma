@@ -45,10 +45,20 @@
 }
 
 .form-row {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-md);
   width: 100%;
+}
+
+.form-row > * {
+  min-width: 0;
+}
+
+@media (max-width: 500px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .card-header {
@@ -165,12 +175,6 @@
    RESPONSIVE DESIGN - Tablet & Desktop
    ======================================== */
 
-@media (max-width: 500px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (min-width: 768px) {
   .register-wrapper {
     justify-content: space-between;
@@ -267,8 +271,14 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--space-md);
   width: 100%;
+}
 
-  @media (max-width: 500px) {
+.form-row > * {
+  min-width: 0;
+}
+
+@media (max-width: 500px) {
+  .form-row {
     grid-template-columns: 1fr;
   }
 }
