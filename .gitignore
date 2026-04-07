@@ -26,6 +26,11 @@
 *.DotSettings.user
 
 # ------------------------------
+# Claude Code (agent) local config
+# ------------------------------
+.claude/settings.local.json
+
+# ------------------------------
 # Logs
 # ------------------------------
 *.log
