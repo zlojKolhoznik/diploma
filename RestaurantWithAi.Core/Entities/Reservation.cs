@@ -33,6 +33,8 @@ public class Reservation
 
     public Restaurant Restaurant { get; set; } = null!;
 
+    public Waiter? AssignedWaiter { get; set; }
+
     public Table? Table { get; set; }
 
     public ICollection<Order> Orders { get; set; } = new List<Order>();

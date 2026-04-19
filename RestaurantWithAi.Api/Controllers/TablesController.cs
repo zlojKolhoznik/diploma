@@ -33,6 +33,7 @@ public class TablesController(ITablesService tablesService, ILogger<TablesContro
     }
 
     [HttpGet("available")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<TableBrief>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
