@@ -31,7 +31,7 @@ public class ReservationServiceTests
         await sut.CreateReservationAsync(new CreateReservationRequest
         {
             RestaurantId = restaurantId,
-            StartTime = new DateTime(2026, 4, 2, 12, 0, 0, DateTimeKind.Utc),
+            StartTime = DateTime.UtcNow.Date.AddDays(1).AddHours(12),
             ApproximateDurationMinutes = 60,
             NumberOfGuests = 2
         }, "guest-1", isAdminInitiated: false);
@@ -56,7 +56,7 @@ public class ReservationServiceTests
         await Assert.ThrowsAsync<ArgumentException>(() => sut.CreateReservationAsync(new CreateReservationRequest
         {
             RestaurantId = restaurantId,
-            StartTime = new DateTime(2026, 4, 2, hour, minute, 0, DateTimeKind.Utc),
+            StartTime = DateTime.UtcNow.Date.AddDays(1).AddHours(hour).AddMinutes(minute),
             ApproximateDurationMinutes = 60,
             NumberOfGuests = 2
         }, "guest-1", isAdminInitiated: false));
@@ -78,7 +78,7 @@ public class ReservationServiceTests
         await sut.CreateReservationAsync(new CreateReservationRequest
         {
             RestaurantId = restaurantId,
-            StartTime = new DateTime(2026, 4, 2, hour, minute, 0, DateTimeKind.Utc),
+            StartTime = DateTime.UtcNow.Date.AddDays(1).AddHours(hour).AddMinutes(minute),
             ApproximateDurationMinutes = 60,
             NumberOfGuests = 2
         }, "guest-1", isAdminInitiated: false);
@@ -99,7 +99,7 @@ public class ReservationServiceTests
                 Id = reservationId,
                 RestaurantId = Guid.NewGuid(),
                 GuestId = "guest-owner",
-                StartTime = DateTime.UtcNow,
+                StartTime = DateTime.UtcNow.AddHours(1),
                 ApproximateDurationMinutes = 60,
                 NumberOfGuests = 3,
                 Status = ReservationStatuses.Created
@@ -124,7 +124,7 @@ public class ReservationServiceTests
             {
                 Id = reservationId,
                 RestaurantId = restaurantId,
-                StartTime = DateTime.UtcNow,
+                StartTime = DateTime.UtcNow.AddHours(1),
                 ApproximateDurationMinutes = 60,
                 NumberOfGuests = 4,
                 Status = ReservationStatuses.Created
@@ -152,7 +152,7 @@ public class ReservationServiceTests
             {
                 Id = reservationId,
                 RestaurantId = Guid.NewGuid(),
-                StartTime = DateTime.UtcNow,
+                StartTime = DateTime.UtcNow.AddHours(1),
                 ApproximateDurationMinutes = 60,
                 NumberOfGuests = 2,
                 Status = ReservationStatuses.Created

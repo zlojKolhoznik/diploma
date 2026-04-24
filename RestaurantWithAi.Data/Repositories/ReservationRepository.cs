@@ -140,6 +140,17 @@ public class ReservationRepository(RestaurantDbContext dbContext) : IReservation
         var availableTables = await GetAvailableTablesAsync(restaurantId, startTime, durationMinutes, minimumSeats);
         return availableTables.Any();
     }
+
+    public async Task<Guid?> GetWaiterRestaurantIdAsync(string waiterId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(waiterId);
+
+        return await dbContext.Waiters
+            .AsNoTracking()
+            .Where(w => w.UserId == waiterId)
+            .Select(w => w.RestaurantId)
+            .FirstOrDefaultAsync();
+    }
 }
 
 

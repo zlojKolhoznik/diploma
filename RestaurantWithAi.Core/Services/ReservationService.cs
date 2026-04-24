@@ -9,6 +9,8 @@ namespace RestaurantWithAi.Core.Services;
 public class ReservationService(IReservationRepository reservationRepository, IMapper mapper) : IReservationsService
 {
     private const int ReservationGapMinutes = 15;
+    private const int MinReservationDurationMinutes = 30;
+    private const int MaxReservationDurationMinutes = 600;
     private static readonly TimeOnly OpeningTime = new(9, 0);
     private static readonly TimeOnly ClosingTime = new(21, 0);
 
@@ -43,6 +45,8 @@ public class ReservationService(IReservationRepository reservationRepository, IM
             throw new KeyNotFoundException($"Restaurant with ID {request.RestaurantId} not found");
 
         ValidateCreationStartTimeWindow(request.StartTime);
+        ValidateCreationLeadTime(request.StartTime);
+        ValidateDurationMinutes(request.ApproximateDurationMinutes);
 
         var reservation = mapper.Map<Reservation>(request);
         reservation.Status = ReservationStatuses.Created;
@@ -68,6 +72,11 @@ public class ReservationService(IReservationRepository reservationRepository, IM
 
             reservation.GuestId = currentUserId;
             reservation.GuestName = string.IsNullOrWhiteSpace(request.GuestName) ? null : request.GuestName.Trim();
+
+            // If the current user is a waiter, their restaurant scope must match the reservation restaurant.
+            var waiterRestaurantId = await reservationRepository.GetWaiterRestaurantIdAsync(currentUserId);
+            if (waiterRestaurantId.HasValue && waiterRestaurantId.Value != request.RestaurantId)
+                throw new UnauthorizedAccessException("Waiters can only create reservations for their assigned restaurant.");
         }
 
         await reservationRepository.AddReservationAsync(reservation);
@@ -78,6 +87,7 @@ public class ReservationService(IReservationRepository reservationRepository, IM
         var reservation = await reservationRepository.GetReservationByIdAsync(id);
 
         EnsureOpenReservation(reservation);
+        EnsureCancellationAllowed(reservation);
 
         if (!isAdmin)
             EnsureGuestOwnership(reservation, currentUserId);
@@ -110,6 +120,10 @@ public class ReservationService(IReservationRepository reservationRepository, IM
                     $"The selected time conflicts with another reservation on table {reservation.TableNumber.Value}. A {ReservationGapMinutes}-minute buffer is required.");
             }
         }
+
+        ValidateCreationStartTimeWindow(request.StartTime);
+        ValidateCreationLeadTime(request.StartTime);
+        ValidateDurationMinutes(request.ApproximateDurationMinutes);
 
         await reservationRepository.UpdateReservationTimeAsync(id, EnsureUtc(request.StartTime), request.ApproximateDurationMinutes);
     }
@@ -208,6 +222,25 @@ public class ReservationService(IReservationRepository reservationRepository, IM
                 "Reservation start time must be between 09:00 and 21:00 in the provided time zone context.",
                 nameof(originalStartTime));
         }
+    }
+
+    private static void ValidateCreationLeadTime(DateTime startTime)
+    {
+        var utcStart = EnsureUtc(startTime);
+        if (utcStart < DateTime.UtcNow.AddMinutes(15))
+            throw new ArgumentException("Reservation start time must be at least 15 minutes in the future.", nameof(startTime));
+    }
+
+    private static void EnsureCancellationAllowed(Reservation reservation)
+    {
+        if (reservation.StartTime <= DateTime.UtcNow.AddMinutes(15))
+            throw new InvalidOperationException("Reservation cannot be cancelled within 15 minutes of its start time.");
+    }
+
+    private static void ValidateDurationMinutes(int durationMinutes)
+    {
+        if (durationMinutes < MinReservationDurationMinutes || durationMinutes > MaxReservationDurationMinutes)
+            throw new ArgumentOutOfRangeException(nameof(durationMinutes), $"Reservation duration must be between {MinReservationDurationMinutes} and {MaxReservationDurationMinutes} minutes.");
     }
 }
 

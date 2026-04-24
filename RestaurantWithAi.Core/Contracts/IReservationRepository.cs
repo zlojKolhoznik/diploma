@@ -19,5 +19,6 @@ public interface IReservationRepository
     Task<bool> HasTableConflictAsync(Guid restaurantId, int tableNumber, DateTime startTime, int durationMinutes, Guid? excludedReservationId = null);
     Task<IEnumerable<Table>> GetAvailableTablesAsync(Guid restaurantId, DateTime startTime, int durationMinutes, int? minimumSeats = null);
     Task<bool> HasAvailableTablesAsync(Guid restaurantId, DateTime startTime, int durationMinutes, int? minimumSeats = null);
+    Task<Guid?> GetWaiterRestaurantIdAsync(string waiterId);
 }
 

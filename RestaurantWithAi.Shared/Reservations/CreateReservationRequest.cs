@@ -16,7 +16,7 @@ public class CreateReservationRequest
     [Required]
     public DateTime StartTime { get; set; }
 
-    [Range(15, 720)]
+    [Range(30, 600)]
     public int ApproximateDurationMinutes { get; set; }
 
     [Range(1, 100)]

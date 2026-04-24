@@ -37,7 +37,7 @@ public class ReservationsController(IReservationsService reservationsService, IL
     }
 
     [HttpPost]
-    [Authorize(Roles = "Guest,Admin")]
+    [Authorize(Roles = "Guest,Waiter,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
