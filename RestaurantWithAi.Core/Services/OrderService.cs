@@ -28,6 +28,13 @@ public class OrderService(IOrderRepository orderRepository, IMapper mapper) : IO
         var reservation = await GetAccessibleReservationAsync(restaurantId, reservationId, currentUserId, isAdmin);
         EnsureReservationCanAcceptOrders(reservation);
 
+        // Pre-order lead-time: if reservation is in Created status, require orders to be placed at least 15 minutes before start
+        if (string.Equals(reservation.Status, ReservationStatuses.Created, StringComparison.Ordinal))
+        {
+            if (reservation.StartTime < DateTime.UtcNow.AddMinutes(15))
+                throw new InvalidOperationException("Pre-orders must be placed at least 15 minutes before reservation start.");
+        }
+
         if (await orderRepository.HasOpenOrderForReservationAsync(restaurantId, reservationId))
             throw new InvalidOperationException("An active order already exists for this reservation.");
 
