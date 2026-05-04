@@ -21,6 +21,7 @@ public class RestaurantDbContext : DbContext
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Review> Reviews { get; set; }
+    public DbSet<WaiterSchedule> WaiterSchedules { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +30,7 @@ public class RestaurantDbContext : DbContext
         ConfigureRestaurantsTable(modelBuilder);
         ConfigureDishAvailabilityRelationship(modelBuilder);
         ConfigureWaitersTable(modelBuilder);
+        ConfigureWaiterSchedulesTable(modelBuilder);
         ConfigureTablesTable(modelBuilder);
         ConfigureReservationsTable(modelBuilder);
         ConfigureOrdersTable(modelBuilder);
@@ -95,6 +97,21 @@ public class RestaurantDbContext : DbContext
             .HasForeignKey(w => w.RestaurantId)
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
+    }
+
+    private static void ConfigureWaiterSchedulesTable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<WaiterSchedule>().ToTable("WaiterSchedules");
+        modelBuilder.Entity<WaiterSchedule>().HasKey(ws => ws.Id);
+        modelBuilder.Entity<WaiterSchedule>().Property(ws => ws.WaiterId).HasMaxLength(200);
+        modelBuilder.Entity<WaiterSchedule>()
+            .HasOne(ws => ws.Waiter)
+            .WithMany(w => w.Schedules)
+            .HasForeignKey(ws => ws.WaiterId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<WaiterSchedule>()
+            .HasIndex(ws => new { ws.WaiterId, ws.Date })
+            .IsUnique();
     }
 
     private static void ConfigureTablesTable(ModelBuilder modelBuilder)

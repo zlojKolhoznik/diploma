@@ -14,4 +14,6 @@ public class Waiter
     public decimal? AverageRating { get; set; }
 
     public Restaurant? Restaurant { get; set; }
+
+    public ICollection<WaiterSchedule> Schedules { get; set; } = new List<WaiterSchedule>();
 }
