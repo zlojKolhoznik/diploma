@@ -20,6 +20,7 @@ public class RestaurantDbContext : DbContext
     public DbSet<Reservation> Reservations { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<Review> Reviews { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,6 +33,23 @@ public class RestaurantDbContext : DbContext
         ConfigureReservationsTable(modelBuilder);
         ConfigureOrdersTable(modelBuilder);
         ConfigureOrderItemsTable(modelBuilder);
+        ConfigureReviewsTable(modelBuilder);
+    }
+
+    private static void ConfigureReviewsTable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Review>().ToTable("Reviews");
+        modelBuilder.Entity<Review>().HasKey(r => r.Id);
+        modelBuilder.Entity<Review>().Property(r => r.CuisineRating).IsRequired();
+        modelBuilder.Entity<Review>().Property(r => r.ServiceRating).IsRequired();
+        modelBuilder.Entity<Review>().Property(r => r.CuisineComment).HasMaxLength(1000);
+        modelBuilder.Entity<Review>().Property(r => r.ServiceComment).HasMaxLength(1000);
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.Reservation)
+            .WithMany(r => r.Reviews)
+            .HasForeignKey(r => r.ReservationId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     private static void ConfigureDishesTable(ModelBuilder modelBuilder)
