@@ -85,6 +85,46 @@ public class CognitoAuthService : IAuthService
         }
     }
 
+    public async Task UpdateProfileAsync(string userId, UpdateProfileRequest request)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(request);
+
+        var userAttributes = new List<AttributeType>();
+
+        if (!string.IsNullOrWhiteSpace(request.FirstName))
+            userAttributes.Add(new AttributeType { Name = "given_name", Value = request.FirstName.Trim() });
+
+        if (!string.IsNullOrWhiteSpace(request.LastName))
+            userAttributes.Add(new AttributeType { Name = "family_name", Value = request.LastName.Trim() });
+
+        if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+            userAttributes.Add(new AttributeType { Name = "phone_number", Value = request.PhoneNumber.Trim() });
+
+        if (userAttributes.Count == 0)
+            return; // No attributes to update
+
+        var updateRequest = new AdminUpdateUserAttributesRequest
+        {
+            UserPoolId = _options.UserPoolId,
+            Username = userId,
+            UserAttributes = userAttributes
+        };
+
+        try
+        {
+            await _cognito.AdminUpdateUserAttributesAsync(updateRequest);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException)
+        {
+            throw new KeyNotFoundException($"User with ID '{userId}' not found in Cognito.");
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new InvalidOperationException($"Failed to update user profile: {ex.Message}");
+        }
+    }
+
     private async Task SignUpAsync(RegisterRequest request)
     {
         var signUpRequest = new SignUpRequest

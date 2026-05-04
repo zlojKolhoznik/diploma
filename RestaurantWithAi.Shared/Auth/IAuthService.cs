@@ -4,4 +4,5 @@ public interface IAuthService
 {
     Task<AuthResponse> LoginAsync(LoginRequest request);
     Task RegisterAsync(RegisterRequest request, UserGroup group = UserGroup.Customer);
+    Task UpdateProfileAsync(string userId, UpdateProfileRequest request);
 }
