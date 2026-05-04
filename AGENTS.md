@@ -1,8 +1,8 @@
 ﻿# AGENTS Guide for RestaurantWithAi
 
 ## Scope and source of truth
-- Convention-file glob search currently matches only this file (`AGENTS.md`); no additional agent-instruction files (`AGENT.md`, `.github/copilot-instructions.md`, `.cursorrules`, etc.) are present.
-- Use this file plus code examples as the working conventions for AI changes.
+- Use this file plus `CLAUDE.md` and `frontend/README.md` as the working conventions for AI changes.
+- Backend guidance is concentrated in `CLAUDE.md`; frontend workflow notes live in `frontend/README.md` and `frontend/package.json`.
 
 ## Architecture map (clean-ish layering)
 - `RestaurantWithAi.Api`: HTTP layer (`Controllers/*`) + app bootstrapping in `RestaurantWithAi.Api/Program.cs`.
@@ -10,6 +10,7 @@
 - `RestaurantWithAi.Data`: EF Core persistence (`RestaurantDbContext.cs`, `Repositories/*`, DI in `Extensions/ServiceCollectionExtensions.cs`).
 - `RestaurantWithAi.Shared`: DTOs, service interfaces, options, and custom exceptions shared across layers.
 - `RestaurantWithAi.Tests`: xUnit tests for service behavior, mapping, EF repositories, and data-annotation validation.
+- `frontend`: Angular app built with standalone components; bootstrapping/providers live in `frontend/src/main.ts` and `frontend/src/app/app.config.ts`, routing is in `frontend/src/app/app.routes.ts`, and feature folders live under `frontend/src/app/{auth,home,shared}`.
 
 ## Request/data flow pattern (apply this when adding features)
 - Controller -> Shared service interface -> Core service -> Core repository contract -> Data repository -> `RestaurantDbContext`.
@@ -40,6 +41,11 @@
 - Run API project:
   - `dotnet run --project C:\Users\Roman\source\RestaurantWithAi\RestaurantWithAi.Api\RestaurantWithAi.Api.csproj`
 - Default dev URLs come from `RestaurantWithAi.Api/Properties/launchSettings.json` (`https://localhost:7153`, `http://localhost:5239`).
+- Frontend (from `frontend/`):
+  - `npm ci`
+  - `npm start` (`ng serve` at `http://localhost:4200`)
+  - `npm test`
+  - `npm run build`
 
 ## Swagger docs locations
 - Swagger is configured in `RestaurantWithAi.Api/Program.cs` (`AddSwaggerGen`, `UseSwagger`, `UseSwaggerUI`), and UI/JSON endpoints are enabled in Development.
@@ -58,3 +64,4 @@
 - If a new endpoint is added, update Shared interface + Core service + contract/repository + mapping profile + tests together.
 - Follow existing exception-to-HTTP translation style in controllers instead of introducing global exception middleware patterns ad hoc.
 - Extend tests in `RestaurantWithAi.Tests` near the touched component (service tests use Moq; repository tests use EF InMemory contexts).
+- For user-facing flows such as `auth`, `orders`, `reservations`, and `reviews`, keep the Angular route/component wiring under `frontend/src/app/` aligned with the matching API controller/service changes.
