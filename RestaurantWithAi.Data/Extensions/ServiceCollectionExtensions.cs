@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IRestaurantRepository, RestaurantRepository>();
             services.AddScoped<IWaiterRepository, WaiterRepository>();
             services.AddScoped<IWaiterScheduleRepository, WaiterScheduleRepository>();
+            services.AddScoped<IAdminAssignmentRepository, AdminAssignmentRepository>();
             services.AddScoped<ITableRepository, TableRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IReviewRepository, ReviewRepository>();

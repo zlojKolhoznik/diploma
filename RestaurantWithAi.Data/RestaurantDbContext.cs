@@ -22,6 +22,7 @@ public class RestaurantDbContext : DbContext
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<WaiterSchedule> WaiterSchedules { get; set; }
+    public DbSet<AdminAssignment> AdminAssignments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +32,7 @@ public class RestaurantDbContext : DbContext
         ConfigureDishAvailabilityRelationship(modelBuilder);
         ConfigureWaitersTable(modelBuilder);
         ConfigureWaiterSchedulesTable(modelBuilder);
+        ConfigureAdminAssignmentsTable(modelBuilder);
         ConfigureTablesTable(modelBuilder);
         ConfigureReservationsTable(modelBuilder);
         ConfigureOrdersTable(modelBuilder);
@@ -112,6 +114,34 @@ public class RestaurantDbContext : DbContext
         modelBuilder.Entity<WaiterSchedule>()
             .HasIndex(ws => new { ws.WaiterId, ws.Date })
             .IsUnique();
+    }
+
+    private static void ConfigureAdminAssignmentsTable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AdminAssignment>().ToTable("AdminAssignments");
+        modelBuilder.Entity<AdminAssignment>().HasKey(aa => aa.Id);
+        modelBuilder.Entity<AdminAssignment>().Property(aa => aa.AppointedById).HasMaxLength(200);
+        modelBuilder.Entity<AdminAssignment>().Property(aa => aa.AppointedUserId).HasMaxLength(200);
+
+        // Relationship: who appointed this admin
+        modelBuilder.Entity<AdminAssignment>()
+            .HasOne(aa => aa.AppointedBy)
+            .WithMany(w => w.AdminsAppointed)
+            .HasForeignKey(aa => aa.AppointedById)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Relationship: the appointed admin
+        modelBuilder.Entity<AdminAssignment>()
+            .HasOne(aa => aa.AppointedUser)
+            .WithMany(w => w.AppointedBy)
+            .HasForeignKey(aa => aa.AppointedUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Create index for efficient lookups
+        modelBuilder.Entity<AdminAssignment>()
+            .HasIndex(aa => aa.AppointedById);
+        modelBuilder.Entity<AdminAssignment>()
+            .HasIndex(aa => aa.AppointedUserId);
     }
 
     private static void ConfigureTablesTable(ModelBuilder modelBuilder)
