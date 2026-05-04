@@ -9,4 +9,5 @@ public interface IWaiterRepository
     Task AddWaiterAsync(Waiter waiter);
     Task UpdateWaiterRestaurantAsync(string userId, Guid? restaurantId);
     Task DeleteWaiterAsync(string userId);
+    Task SaveChangesAsync();
 }

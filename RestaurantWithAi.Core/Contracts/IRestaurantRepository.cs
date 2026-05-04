@@ -9,5 +9,6 @@ public interface IRestaurantRepository
     Task AddRestaurantAsync(Restaurant restaurant);
     Task UpdateRestaurantAsync(Restaurant restaurant);
     Task DeleteRestaurantAsync(Guid id);
+    Task SaveChangesAsync();
 }
 

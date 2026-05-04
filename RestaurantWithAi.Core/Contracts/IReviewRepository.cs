@@ -8,5 +8,7 @@ public interface IReviewRepository
     Task<IEnumerable<Review>> GetReviewsForRestaurantAsync(Guid restaurantId);
     Task AddReviewAsync(Review review);
     Task SaveChangesAsync();
+    Task<decimal?> GetAverageRestaurantRatingAsync(Guid restaurantId);
+    Task<decimal?> GetAverageWaiterRatingAsync(string waiterId);
 }
 

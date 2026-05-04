@@ -38,5 +38,45 @@ public class ReviewRepository : IReviewRepository
     {
         return dbContext.SaveChangesAsync();
     }
-}
 
+    public async Task<decimal?> GetAverageRestaurantRatingAsync(Guid restaurantId)
+    {
+        var reviews = await dbContext.Reviews
+            .AsNoTracking()
+            .Include(r => r.Reservation)
+            .Where(r => r.Reservation.RestaurantId == restaurantId)
+            .ToListAsync();
+
+        if (reviews.Count == 0)
+            return null;
+
+        // Average of (cuisine + service) / 2 for all reviews
+        var averageRating = reviews
+            .Select(r => ((decimal)r.CuisineRating + r.ServiceRating) / 2)
+            .Average();
+
+        return Math.Round(averageRating, 1);
+    }
+
+    public async Task<decimal?> GetAverageWaiterRatingAsync(string waiterId)
+    {
+        if (string.IsNullOrWhiteSpace(waiterId))
+            return null;
+
+        var reviews = await dbContext.Reviews
+            .AsNoTracking()
+            .Include(r => r.Reservation)
+            .Where(r => r.Reservation.AssignedWaiterId == waiterId)
+            .ToListAsync();
+
+        if (reviews.Count == 0)
+            return null;
+
+        // Average of (cuisine + service) / 2 for all reviews
+        var averageRating = reviews
+            .Select(r => ((decimal)r.CuisineRating + r.ServiceRating) / 2)
+            .Average();
+
+        return Math.Round(averageRating, 1);
+    }
+}

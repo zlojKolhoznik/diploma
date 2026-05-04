@@ -77,6 +77,23 @@ public class ReservationService(IReservationRepository reservationRepository, IM
             var waiterRestaurantId = await reservationRepository.GetWaiterRestaurantIdAsync(currentUserId);
             if (waiterRestaurantId.HasValue && waiterRestaurantId.Value != request.RestaurantId)
                 throw new UnauthorizedAccessException("Waiters can only create reservations for their assigned restaurant.");
+
+            // Auto-assign waiter based on current user or least-loaded waiter
+            if (waiterRestaurantId.HasValue)
+            {
+                // If current user is a waiter, assign to them
+                reservation.AssignedWaiterId = currentUserId;
+            }
+            else
+            {
+                // If customer, find and assign the least-loaded waiter for that date
+                var reservationDate = DateOnly.FromDateTime(reservation.StartTime);
+                var leastLoadedWaiter = await reservationRepository.GetLeastLoadedWaiterAsync(request.RestaurantId, reservationDate);
+                if (leastLoadedWaiter != null)
+                {
+                    reservation.AssignedWaiterId = leastLoadedWaiter.UserId;
+                }
+            }
         }
 
         await reservationRepository.AddReservationAsync(reservation);

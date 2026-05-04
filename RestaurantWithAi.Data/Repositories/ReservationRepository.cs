@@ -151,6 +151,40 @@ public class ReservationRepository(RestaurantDbContext dbContext) : IReservation
             .Select(w => w.RestaurantId)
             .FirstOrDefaultAsync();
     }
+
+    public async Task<Waiter?> GetLeastLoadedWaiterAsync(Guid restaurantId, DateOnly date)
+    {
+        var startOfDay = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Utc);
+        var endOfDay = startOfDay.AddDays(1);
+
+        // Get all waiters for the restaurant
+        var waiters = await dbContext.Waiters
+            .AsNoTracking()
+            .Where(w => w.RestaurantId == restaurantId)
+            .ToListAsync();
+
+        if (!waiters.Any())
+            return null;
+
+        // Count non-closed (open) reservations for each waiter on the given date
+        var waiterLoadMap = new Dictionary<string, int>();
+        foreach (var waiter in waiters)
+        {
+            var reservationCount = await dbContext.Reservations
+                .AsNoTracking()
+                .CountAsync(r => r.AssignedWaiterId == waiter.UserId &&
+                                  r.StartTime >= startOfDay &&
+                                  r.StartTime < endOfDay &&
+                                  ReservationStatuses.OpenStatuses.Contains(r.Status));
+            waiterLoadMap[waiter.UserId] = reservationCount;
+        }
+
+        // Return waiter with minimum load
+        var leastLoadedWaiterId = waiterLoadMap.OrderBy(x => x.Value).First().Key;
+        return await dbContext.Waiters
+            .AsNoTracking()
+            .FirstOrDefaultAsync(w => w.UserId == leastLoadedWaiterId);
+    }
 }
 
 

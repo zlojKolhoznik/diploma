@@ -11,5 +11,7 @@ public class Waiter
     [ForeignKey(nameof(Restaurant))]
     public Guid? RestaurantId { get; set; }
 
+    public decimal? AverageRating { get; set; }
+
     public Restaurant? Restaurant { get; set; }
 }

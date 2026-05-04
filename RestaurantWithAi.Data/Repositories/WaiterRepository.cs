@@ -42,4 +42,9 @@ public class WaiterRepository(RestaurantDbContext dbContext) : IWaiterRepository
         dbContext.Waiters.Remove(waiter);
         await dbContext.SaveChangesAsync();
     }
+
+    public async Task SaveChangesAsync()
+    {
+        await dbContext.SaveChangesAsync();
+    }
 }

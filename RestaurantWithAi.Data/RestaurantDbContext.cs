@@ -72,6 +72,7 @@ public class RestaurantDbContext : DbContext
         modelBuilder.Entity<Restaurant>().Property(r => r.Address).IsRequired();
         modelBuilder.Entity<Restaurant>().Property(r => r.City).HasMaxLength(100);
         modelBuilder.Entity<Restaurant>().Property(r => r.Address).HasMaxLength(200);
+        modelBuilder.Entity<Restaurant>().Property(r => r.AverageRating).HasColumnType("decimal(3,1)").IsRequired(false);
     }
 
     private static void ConfigureDishAvailabilityRelationship(ModelBuilder modelBuilder)
@@ -87,6 +88,7 @@ public class RestaurantDbContext : DbContext
         modelBuilder.Entity<Waiter>().ToTable("Waiters");
         modelBuilder.Entity<Waiter>().HasKey(w => w.UserId);
         modelBuilder.Entity<Waiter>().Property(w => w.UserId).HasMaxLength(200);
+        modelBuilder.Entity<Waiter>().Property(w => w.AverageRating).HasColumnType("decimal(3,1)").IsRequired(false);
         modelBuilder.Entity<Waiter>()
             .HasOne(w => w.Restaurant)
             .WithMany()
