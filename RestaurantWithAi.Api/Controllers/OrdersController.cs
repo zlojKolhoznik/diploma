@@ -294,6 +294,83 @@ public class OrdersController(IOrdersService ordersService, ILogger<OrdersContro
         }
     }
 
+    [HttpPatch("{orderId:guid}/items/{itemId:guid}/approve")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Roles = "Waiter,Admin")]
+    public async Task<IActionResult> ApproveOrderItem(Guid restaurantId, Guid reservationId, Guid orderId, Guid itemId)
+    {
+        try
+        {
+            await ordersService.ApproveOrderItemAsync(restaurantId, reservationId, orderId, itemId, GetCurrentUserId(), User.IsInRole("Admin"));
+            return NoContent();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            logger.LogInformation(ex, "Approve item failed for item {ItemId} in order {OrderId} because related entities were not found.", itemId, orderId);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogInformation(ex, "Approve item failed for item {ItemId} in order {OrderId} due to invalid item state.", itemId, orderId);
+            return Conflict(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while approving item {ItemId} in order {OrderId}.", itemId, orderId);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+        }
+    }
+
+    [HttpPatch("{orderId:guid}/items/{itemId:guid}/reject")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Roles = "Waiter,Admin")]
+    public async Task<IActionResult> RejectOrderItem(Guid restaurantId, Guid reservationId, Guid orderId, Guid itemId, [FromBody] RejectOrderItemRequest request)
+    {
+        try
+        {
+            await ordersService.RejectOrderItemAsync(restaurantId, reservationId, orderId, itemId, request, GetCurrentUserId(), User.IsInRole("Admin"));
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogInformation(ex, "Reject item request for item {ItemId} in order {OrderId} was invalid.", itemId, orderId);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            logger.LogInformation(ex, "Reject item failed for item {ItemId} in order {OrderId} because related entities were not found.", itemId, orderId);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogInformation(ex, "Reject item failed for item {ItemId} in order {OrderId} due to invalid item state.", itemId, orderId);
+            return Conflict(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while rejecting item {ItemId} in order {OrderId}.", itemId, orderId);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+        }
+    }
+
     private string GetCurrentUserId()
     {
         var userId = User.FindFirstValue("sub") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);

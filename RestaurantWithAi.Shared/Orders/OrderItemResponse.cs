@@ -8,6 +8,8 @@ public class OrderItemResponse
     public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public string? Notes { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string? RejectionReason { get; set; }
     public decimal LineTotal => UnitPrice * Quantity;
 }
 

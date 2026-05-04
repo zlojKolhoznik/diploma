@@ -181,6 +181,8 @@ public class RestaurantDbContext : DbContext
         modelBuilder.Entity<OrderItem>().Property(i => i.DishName).IsRequired().HasMaxLength(150);
         modelBuilder.Entity<OrderItem>().Property(i => i.Notes).HasMaxLength(300);
         modelBuilder.Entity<OrderItem>().Property(i => i.UnitPrice).HasColumnType("decimal(18,2)");
+        modelBuilder.Entity<OrderItem>().Property(i => i.Status).IsRequired().HasMaxLength(50);
+        modelBuilder.Entity<OrderItem>().Property(i => i.RejectionReason).HasMaxLength(500).IsRequired(false);
 
         modelBuilder.Entity<OrderItem>()
             .HasOne(i => i.Order)

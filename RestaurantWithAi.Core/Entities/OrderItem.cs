@@ -23,6 +23,12 @@ public class OrderItem
     [MaxLength(300)]
     public string? Notes { get; set; }
 
+    [MaxLength(50)]
+    public string Status { get; set; } = OrderItemStatuses.Approved;
+
+    [MaxLength(500)]
+    public string? RejectionReason { get; set; }
+
     public Order Order { get; set; } = null!;
     public Dish Dish { get; set; } = null!;
 }

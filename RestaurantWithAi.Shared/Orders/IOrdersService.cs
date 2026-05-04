@@ -10,5 +10,6 @@ public interface IOrdersService
     Task UpdateOrderItemAsync(Guid restaurantId, Guid reservationId, Guid orderId, Guid itemId, UpdateOrderItemRequest request, string currentUserId, bool isAdmin);
     Task RemoveOrderItemAsync(Guid restaurantId, Guid reservationId, Guid orderId, Guid itemId, string currentUserId, bool isAdmin);
     Task CloseOrderAsync(Guid restaurantId, Guid reservationId, Guid orderId, string currentUserId, bool isAdmin);
+    Task ApproveOrderItemAsync(Guid restaurantId, Guid reservationId, Guid orderId, Guid itemId, string currentUserId, bool isAdmin);
+    Task RejectOrderItemAsync(Guid restaurantId, Guid reservationId, Guid orderId, Guid itemId, RejectOrderItemRequest request, string currentUserId, bool isAdmin);
 }
-

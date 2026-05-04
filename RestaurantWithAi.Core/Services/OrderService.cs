@@ -45,7 +45,15 @@ public class OrderService(IOrderRepository orderRepository, IMapper mapper) : IO
         order.CreatedAtUtc = DateTime.UtcNow;
 
         foreach (var item in request.Items)
-            order.Items.Add(await BuildOrderItemAsync(restaurantId, item));
+        {
+            var orderItem = await BuildOrderItemAsync(restaurantId, item);
+            // Pre-order items (Created status) start as Pending; others are Approved
+            if (string.Equals(reservation.Status, ReservationStatuses.Created, StringComparison.Ordinal))
+                orderItem.Status = OrderItemStatuses.Pending;
+            else
+                orderItem.Status = OrderItemStatuses.Approved;
+            order.Items.Add(orderItem);
+        }
 
         await orderRepository.AddOrderAsync(order);
     }
@@ -132,6 +140,36 @@ public class OrderService(IOrderRepository orderRepository, IMapper mapper) : IO
         order.Status = OrderStatuses.Closed;
         order.ClosedAtUtc = DateTime.UtcNow;
 
+        await orderRepository.SaveChangesAsync();
+    }
+
+    public async Task ApproveOrderItemAsync(Guid restaurantId, Guid reservationId, Guid orderId, Guid itemId, string currentUserId, bool isAdmin)
+    {
+        var reservation = await GetAccessibleReservationAsync(restaurantId, reservationId, currentUserId, isAdmin);
+        var order = await orderRepository.GetOrderByIdAsync(restaurantId, reservationId, orderId);
+        var item = await orderRepository.GetOrderItemByIdAsync(restaurantId, reservationId, orderId, itemId);
+
+        if (!string.Equals(item.Status, OrderItemStatuses.Pending, StringComparison.Ordinal))
+            throw new InvalidOperationException($"Item is in '{item.Status}' status and cannot be approved");
+
+        item.Status = OrderItemStatuses.Approved;
+        item.RejectionReason = null;
+        await orderRepository.SaveChangesAsync();
+    }
+
+    public async Task RejectOrderItemAsync(Guid restaurantId, Guid reservationId, Guid orderId, Guid itemId, RejectOrderItemRequest request, string currentUserId, bool isAdmin)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var reservation = await GetAccessibleReservationAsync(restaurantId, reservationId, currentUserId, isAdmin);
+        var order = await orderRepository.GetOrderByIdAsync(restaurantId, reservationId, orderId);
+        var item = await orderRepository.GetOrderItemByIdAsync(restaurantId, reservationId, orderId, itemId);
+
+        if (!string.Equals(item.Status, OrderItemStatuses.Pending, StringComparison.Ordinal))
+            throw new InvalidOperationException($"Item is in '{item.Status}' status and cannot be rejected");
+
+        item.Status = OrderItemStatuses.Rejected;
+        item.RejectionReason = request.RejectionReason.Trim();
         await orderRepository.SaveChangesAsync();
     }
 
