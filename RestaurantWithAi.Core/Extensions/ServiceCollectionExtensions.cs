@@ -8,6 +8,7 @@ using RestaurantWithAi.Shared.Reservations;
 using RestaurantWithAi.Shared.Restaurants;
 using RestaurantWithAi.Shared.Tables;
 using RestaurantWithAi.Shared.Orders;
+using RestaurantWithAi.Shared.Reviews;
 
 namespace RestaurantWithAi.Core.Extensions;
 
@@ -24,6 +25,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRestaurantsService, RestaurantService>();
         services.AddScoped<ITablesService, TableService>();
         services.AddScoped<IOrdersService, OrderService>();
+        services.AddScoped<IReviewsService, ReviewService>();
         return services;
     }
 }

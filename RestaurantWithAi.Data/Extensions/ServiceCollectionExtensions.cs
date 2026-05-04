@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IWaiterRepository, WaiterRepository>();
             services.AddScoped<ITableRepository, TableRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IReviewRepository, ReviewRepository>();
             var connectionString = configuration.GetConnectionString("LocalConnection")
                                    ?? configuration.GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("No SQL Server connection string found. Configure 'ConnectionStrings:LocalConnection' or 'ConnectionStrings:DefaultConnection'.");
