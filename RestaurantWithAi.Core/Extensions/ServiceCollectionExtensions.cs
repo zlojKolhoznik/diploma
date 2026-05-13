@@ -2,6 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using RestaurantWithAi.Core.Contracts;
 using RestaurantWithAi.Core.Services;
+using RestaurantWithAi.Core.Services.Reports;
+
+using RestaurantWithAi.Shared.AI;
 using RestaurantWithAi.Shared.Auth;
 using RestaurantWithAi.Shared.Waiters;
 using RestaurantWithAi.Shared.Dishes;
@@ -10,6 +13,7 @@ using RestaurantWithAi.Shared.Restaurants;
 using RestaurantWithAi.Shared.Tables;
 using RestaurantWithAi.Shared.Orders;
 using RestaurantWithAi.Shared.Reviews;
+using RestaurantWithAi.Shared.Reports;
 
 namespace RestaurantWithAi.Core.Extensions;
 
@@ -27,6 +31,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITablesService, TableService>();
         services.AddScoped<IOrdersService, OrderService>();
         services.AddScoped<IReviewsService, ReviewService>();
+        services.AddScoped<IReviewModerationService, ClaudeReviewModerationService>();
+        services.AddScoped<ITextGenerationClient, UnconfiguredTextGenerationClient>();
+        services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IReportSectionBuilder, StructuredReportSectionBuilder>();
+        services.AddScoped<IReportAnalysisService, ReportAnalysisService>();
+        services.AddSingleton<IReportRendererFactory, ReportRendererFactory>();
         services.AddScoped<IWaiterScheduleService, WaiterScheduleService>();
         services.AddScoped<IAdminService, AdminService>();
         return services;

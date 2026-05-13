@@ -7,7 +7,7 @@ namespace RestaurantWithAi.Api.Controllers;
 
 [ApiController]
 [Route("api/restaurants/{restaurantId:guid}/reviews")]
-public class ReviewsController(IReviewsService reviewsService, ILogger<ReviewsController> logger) : ControllerBase
+public class ReviewsController(IReviewsService reviewsService, IReviewModerationService reviewModerationService, ILogger<ReviewsController> logger) : ControllerBase
 {
     [HttpGet]
     [AllowAnonymous]
@@ -58,6 +58,30 @@ public class ReviewsController(IReviewsService reviewsService, ILogger<ReviewsCo
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while creating review for reservation {ReservationId} in restaurant {RestaurantId}.", reservationId, restaurantId);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+        }
+    }
+
+    [HttpPost("../../reservations/{reservationId:guid}/review/moderate")]
+    [Authorize]
+    [ProducesResponseType(typeof(ReviewModerationResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ReviewModerationResult>> ModerateReview(Guid restaurantId, Guid reservationId, [FromBody] CreateReviewRequest request)
+    {
+        try
+        {
+            var result = await reviewModerationService.ModerateAsync(request);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogInformation(ex, "Moderating review draft for reservation {ReservationId} in restaurant {RestaurantId} was invalid.", reservationId, restaurantId);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while moderating review draft for reservation {ReservationId} in restaurant {RestaurantId}.", reservationId, restaurantId);
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
         }
     }

@@ -19,6 +19,7 @@ public class ReviewServiceTests
         var reservationRepo = new Mock<IReservationRepository>();
         var restaurantRepo = new Mock<IRestaurantRepository>();
         var waiterRepo = new Mock<IWaiterRepository>();
+        var moderationService = new Mock<IReviewModerationService>();
 
         var reservationId = Guid.NewGuid();
         var restaurantId = Guid.NewGuid();
@@ -28,6 +29,8 @@ public class ReviewServiceTests
             .ReturnsAsync(new Reservation { Id = reservationId, RestaurantId = restaurantId, StartTime = DateTime.UtcNow, ApproximateDurationMinutes = 60, NumberOfGuests = 2, Status = ReservationStatuses.Created });
 
         reviewRepo.Setup(r => r.GetByReservationIdAsync(reservationId)).ReturnsAsync((Review?)null);
+        moderationService.Setup(m => m.ModerateAsync(It.IsAny<CreateReviewRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ReviewModerationResult { Approved = true });
         reviewRepo.Setup(r => r.AddReviewAsync(It.IsAny<Review>()))
             .Callback<Review>(r => captured = r)
             .Returns(Task.CompletedTask);
@@ -41,7 +44,7 @@ public class ReviewServiceTests
         var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile<ReviewMappingProfile>());
         var mapper = mapperConfig.CreateMapper();
 
-        var sut = new ReviewService(reviewRepo.Object, reservationRepo.Object, restaurantRepo.Object, waiterRepo.Object, mapper);
+        var sut = new ReviewService(reviewRepo.Object, reservationRepo.Object, restaurantRepo.Object, waiterRepo.Object, moderationService.Object, mapper);
 
         await sut.CreateReviewAsync(reservationId, new CreateReviewRequest { CuisineRating = 5, ServiceRating = 4 }, "user-1", isAdmin: false);
 
@@ -57,6 +60,7 @@ public class ReviewServiceTests
         var reservationRepo = new Mock<IReservationRepository>();
         var restaurantRepo = new Mock<IRestaurantRepository>();
         var waiterRepo = new Mock<IWaiterRepository>();
+        var moderationService = new Mock<IReviewModerationService>();
 
         var reservationId = Guid.NewGuid();
         var restaurantId = Guid.NewGuid();
@@ -65,13 +69,50 @@ public class ReviewServiceTests
             .ReturnsAsync(new Reservation { Id = reservationId, RestaurantId = restaurantId, StartTime = DateTime.UtcNow, ApproximateDurationMinutes = 60, NumberOfGuests = 2, Status = ReservationStatuses.Created });
 
         reviewRepo.Setup(r => r.GetByReservationIdAsync(reservationId)).ReturnsAsync(new Review { Id = Guid.NewGuid(), ReservationId = reservationId, CuisineRating = 4, ServiceRating = 4 });
+        moderationService.Setup(m => m.ModerateAsync(It.IsAny<CreateReviewRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ReviewModerationResult { Approved = true });
 
         var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile<ReviewMappingProfile>());
         var mapper = mapperConfig.CreateMapper();
 
-        var sut = new ReviewService(reviewRepo.Object, reservationRepo.Object, restaurantRepo.Object, waiterRepo.Object, mapper);
+        var sut = new ReviewService(reviewRepo.Object, reservationRepo.Object, restaurantRepo.Object, waiterRepo.Object, moderationService.Object, mapper);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => sut.CreateReviewAsync(reservationId, new CreateReviewRequest { CuisineRating = 5, ServiceRating = 5 }, "user-1", isAdmin: false));
+    }
+
+    [Fact]
+    public async Task CreateReviewAsync_WhenModerationRejects_ThrowsInvalidOperationException()
+    {
+        var reviewRepo = new Mock<IReviewRepository>();
+        var reservationRepo = new Mock<IReservationRepository>();
+        var restaurantRepo = new Mock<IRestaurantRepository>();
+        var waiterRepo = new Mock<IWaiterRepository>();
+        var moderationService = new Mock<IReviewModerationService>();
+
+        var reservationId = Guid.NewGuid();
+        var restaurantId = Guid.NewGuid();
+
+        reservationRepo.Setup(r => r.GetReservationByIdAsync(reservationId))
+            .ReturnsAsync(new Reservation { Id = reservationId, RestaurantId = restaurantId, StartTime = DateTime.UtcNow, ApproximateDurationMinutes = 60, NumberOfGuests = 2, Status = ReservationStatuses.Created });
+
+        reviewRepo.Setup(r => r.GetByReservationIdAsync(reservationId)).ReturnsAsync((Review?)null);
+        moderationService.Setup(m => m.ModerateAsync(It.IsAny<CreateReviewRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ReviewModerationResult
+            {
+                Approved = false,
+                Reason = "Contains personal attacks.",
+                SuggestedRephrasing = "Focus the feedback on the food and service."
+            });
+
+        var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile<ReviewMappingProfile>());
+        var mapper = mapperConfig.CreateMapper();
+
+        var sut = new ReviewService(reviewRepo.Object, reservationRepo.Object, restaurantRepo.Object, waiterRepo.Object, moderationService.Object, mapper);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => sut.CreateReviewAsync(reservationId, new CreateReviewRequest { CuisineRating = 2, ServiceRating = 1 }, "user-1", isAdmin: false));
+
+        Assert.Contains("Contains personal attacks.", ex.Message);
+        Assert.Contains("Suggested rephrasing", ex.Message);
     }
 }
 

@@ -6,6 +6,7 @@ using RestaurantWithAi.Shared.Options;
 using RestaurantWithAi.Shared.Reservations;
 using RestaurantWithAi.Shared.Restaurants;
 using RestaurantWithAi.Shared.Orders;
+using RestaurantWithAi.Shared.Reports;
 
 namespace RestaurantWithAi.Tests.Shared;
 
@@ -133,6 +134,21 @@ public class RequestValidationTests
         var results = Validate(request);
 
         Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateOrderRequest.Items)));
+    }
+
+    [Fact]
+    public void GenerateReportRequest_WhenRequiredValuesMissing_FailsValidation()
+    {
+        var request = new GenerateReportRequest
+        {
+            Type = string.Empty,
+            Format = string.Empty
+        };
+
+        var results = Validate(request);
+
+        Assert.Contains(results, r => r.MemberNames.Contains(nameof(GenerateReportRequest.Type)));
+        Assert.Contains(results, r => r.MemberNames.Contains(nameof(GenerateReportRequest.Format)));
     }
 
     private static List<ValidationResult> Validate(object model)
