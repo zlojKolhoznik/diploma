@@ -71,12 +71,21 @@ public class CognitoAuthService : IAuthService
 
     public async Task RegisterAsync(RegisterRequest request, UserGroup group = UserGroup.Customer)
     {
+        var resolvedGroup = group;
+
+        if (group == UserGroup.Customer)
+        {
+            var isFirstUser = await IsFirstUserAsync();
+            if (isFirstUser)
+                resolvedGroup = UserGroup.Admin;
+        }
+
         await SignUpAsync(request);
         await ConfirmUserAsync(request.Email);
 
         try
         {
-            await AddUserToGroup(group, request.Email);
+            await AddUserToGroup(resolvedGroup, request.Email);
         }
         catch (RegistrationFailedException)
         {
@@ -100,6 +109,9 @@ public class CognitoAuthService : IAuthService
 
         if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
             userAttributes.Add(new AttributeType { Name = "phone_number", Value = request.PhoneNumber.Trim() });
+
+        if (!string.IsNullOrWhiteSpace(request.PhotoUrl))
+            userAttributes.Add(new AttributeType { Name = "picture", Value = request.PhotoUrl.Trim() });
 
         if (userAttributes.Count == 0)
             return; // No attributes to update
@@ -208,6 +220,17 @@ public class CognitoAuthService : IAuthService
         {
             throw new RegistrationFailedException("Failed to add user to group.");
         }
+    }
+
+    private async Task<bool> IsFirstUserAsync()
+    {
+        var listRequest = new ListUsersRequest
+        {
+            UserPoolId = _options.UserPoolId,
+            Limit = 1
+        };
+        var response = await _cognito.ListUsersAsync(listRequest);
+        return response.Users.Count == 0;
     }
 
     private async Task RollbackConfirmedUserAsync(string email)

@@ -10,6 +10,6 @@ public interface IReservationsService
     Task UpdateReservationTimeAsync(Guid id, UpdateReservationTimeRequest request, string? currentUserId, bool isAdmin);
     Task UpdateReservationTableAsync(Guid id, UpdateReservationTableRequest request);
     Task UpdateReservationAssignedWaiterAsync(Guid id, UpdateReservationAssignedWaiterRequest request);
-    Task UpdateReservationStatusAsync(Guid id, UpdateReservationStatusRequest request);
+    Task UpdateReservationStatusAsync(Guid id, UpdateReservationStatusRequest request, string? currentUserId, bool isAdmin);
 }
 

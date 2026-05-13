@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RestaurantWithAi.Core.Contracts;
 using RestaurantWithAi.Core.Services.Reports;
 using RestaurantWithAi.Shared.Reports;
 
@@ -8,7 +10,7 @@ namespace RestaurantWithAi.Api.Controllers;
 [Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/analytics")]
-public class AnalyticsController(IReportService reportService, IReportRendererFactory rendererFactory, IReportAnalysisService analysisService, ILogger<AnalyticsController> logger) : ControllerBase
+public class AnalyticsController(IReportService reportService, IReportRendererFactory rendererFactory, IReportAnalysisService analysisService, IWaiterRepository waiterRepository, ILogger<AnalyticsController> logger) : ControllerBase
 {
     [HttpPost("reports")]
     [ProducesResponseType(typeof(ReportResponse), StatusCodes.Status200OK)]
@@ -20,6 +22,18 @@ public class AnalyticsController(IReportService reportService, IReportRendererFa
     {
         try
         {
+            var currentUserId = GetCurrentUserId();
+            var adminRestaurantId = await GetAdminRestaurantScopeAsync(currentUserId);
+            
+            var isNetworkReport = request.RestaurantId == null;
+            var isLocationReport = request.RestaurantId != null;
+
+            if (isNetworkReport && adminRestaurantId.HasValue)
+                return Forbid(); // location admin cannot generate network-wide reports
+
+            if (isLocationReport && adminRestaurantId.HasValue && adminRestaurantId.Value != request.RestaurantId)
+                return Forbid(); // location admin can only generate reports for their own restaurant
+
             var report = await reportService.GenerateReportAsync(request);
 
             if (IsBinaryFormat(request.Format))
@@ -117,6 +131,21 @@ public class AnalyticsController(IReportService reportService, IReportRendererFa
             "pdf" => "pdf",
             _ => "bin"
         };
+    }
+
+    private string GetCurrentUserId()
+    {
+        var userId = User.FindFirstValue("sub") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new UnauthorizedAccessException("Current user identifier claim is missing.");
+
+        return userId;
+    }
+
+    private async Task<Guid?> GetAdminRestaurantScopeAsync(string currentUserId)
+    {
+        var waiter = await waiterRepository.GetWaiterByUserIdAsync(currentUserId);
+        return waiter?.RestaurantId;
     }
 }
 

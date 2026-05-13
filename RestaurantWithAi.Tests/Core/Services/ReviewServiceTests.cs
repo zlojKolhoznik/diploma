@@ -46,7 +46,7 @@ public class ReviewServiceTests
 
         var sut = new ReviewService(reviewRepo.Object, reservationRepo.Object, restaurantRepo.Object, waiterRepo.Object, moderationService.Object, mapper);
 
-        await sut.CreateReviewAsync(reservationId, new CreateReviewRequest { CuisineRating = 5, ServiceRating = 4 }, "user-1", isAdmin: false);
+        await sut.CreateReviewAsync(reservationId, new CreateReviewRequest { CuisineRating = 5, ServiceRating = 4 }, currentUserId: "user-1", isAdmin: false);
 
         Assert.NotNull(captured);
         Assert.Equal(reservationId, captured!.ReservationId);
@@ -77,7 +77,7 @@ public class ReviewServiceTests
 
         var sut = new ReviewService(reviewRepo.Object, reservationRepo.Object, restaurantRepo.Object, waiterRepo.Object, moderationService.Object, mapper);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => sut.CreateReviewAsync(reservationId, new CreateReviewRequest { CuisineRating = 5, ServiceRating = 5 }, "user-1", isAdmin: false));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => sut.CreateReviewAsync(reservationId, new CreateReviewRequest { CuisineRating = 5, ServiceRating = 5 }, currentUserId: "user-1", isAdmin: false));
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class ReviewServiceTests
 
         var sut = new ReviewService(reviewRepo.Object, reservationRepo.Object, restaurantRepo.Object, waiterRepo.Object, moderationService.Object, mapper);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => sut.CreateReviewAsync(reservationId, new CreateReviewRequest { CuisineRating = 2, ServiceRating = 1 }, "user-1", isAdmin: false));
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => sut.CreateReviewAsync(reservationId, new CreateReviewRequest { CuisineRating = 2, ServiceRating = 1 }, currentUserId: "user-1", isAdmin: false));
 
         Assert.Contains("Contains personal attacks.", ex.Message);
         Assert.Contains("Suggested rephrasing", ex.Message);

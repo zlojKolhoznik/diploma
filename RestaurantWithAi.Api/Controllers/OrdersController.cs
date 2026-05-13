@@ -7,7 +7,7 @@ namespace RestaurantWithAi.Api.Controllers;
 
 [ApiController]
 [Route("api/restaurants/{restaurantId:guid}/reservations/{reservationId:guid}/orders")]
-[Authorize(Roles = "Waiter,Admin")]
+[Authorize]
 public class OrdersController(IOrdersService ordersService, ILogger<OrdersController> logger) : ControllerBase
 {
     [HttpGet]
@@ -77,7 +77,7 @@ public class OrdersController(IOrdersService ordersService, ILogger<OrdersContro
     {
         try
         {
-            await ordersService.CreateOrderAsync(restaurantId, reservationId, request, GetCurrentUserId(), User.IsInRole("Admin"));
+            await ordersService.CreateOrderAsync(restaurantId, reservationId, request, GetCurrentUserId(), User.IsInRole("Admin"), User.IsInRole("Waiter"));
             return NoContent();
         }
         catch (ArgumentException ex)
@@ -107,6 +107,7 @@ public class OrdersController(IOrdersService ordersService, ILogger<OrdersContro
     }
 
     [HttpPatch("{orderId:guid}/status")]
+    [Authorize(Roles = "Waiter,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -157,7 +158,7 @@ public class OrdersController(IOrdersService ordersService, ILogger<OrdersContro
     {
         try
         {
-            await ordersService.AddOrderItemAsync(restaurantId, reservationId, orderId, request, GetCurrentUserId(), User.IsInRole("Admin"));
+            await ordersService.AddOrderItemAsync(restaurantId, reservationId, orderId, request, GetCurrentUserId(), User.IsInRole("Admin"), User.IsInRole("Waiter"));
             return NoContent();
         }
         catch (ArgumentException ex)

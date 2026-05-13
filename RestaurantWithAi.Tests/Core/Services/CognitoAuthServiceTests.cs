@@ -159,6 +159,10 @@ public class CognitoAuthServiceTests
         AdminAddUserToGroupRequest? capturedAddToGroup = null;
 
         cognitoMock
+            .Setup(c => c.ListUsersAsync(It.IsAny<ListUsersRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ListUsersResponse { Users = [new UserType { Username = "existing-user" }] });
+
+        cognitoMock
             .Setup(c => c.SignUpAsync(It.IsAny<SignUpRequest>(), It.IsAny<CancellationToken>()))
             .Callback<SignUpRequest, CancellationToken>((request, _) => capturedSignUp = request)
             .ReturnsAsync(new SignUpResponse { HttpStatusCode = HttpStatusCode.OK });
@@ -203,6 +207,47 @@ public class CognitoAuthServiceTests
         Assert.Equal(ValidOptions.UserPoolId, capturedAddToGroup!.UserPoolId);
         Assert.Equal(registerRequest.Email, capturedAddToGroup.Username);
         Assert.Equal(UserGroup.Customer.ToString(), capturedAddToGroup.GroupName);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_WhenFirstUser_AssignsAdminRoleInsteadOfCustomer()
+    {
+        // Arrange
+        var cognitoMock = new Mock<IAmazonCognitoIdentityProvider>();
+        AdminAddUserToGroupRequest? capturedAddToGroup = null;
+
+        cognitoMock
+            .Setup(c => c.ListUsersAsync(It.IsAny<ListUsersRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ListUsersResponse { Users = [] }); // Empty user pool
+
+        cognitoMock
+            .Setup(c => c.SignUpAsync(It.IsAny<SignUpRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SignUpResponse { HttpStatusCode = HttpStatusCode.OK });
+
+        cognitoMock
+            .Setup(c => c.AdminConfirmSignUpAsync(It.IsAny<AdminConfirmSignUpRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AdminConfirmSignUpResponse { HttpStatusCode = HttpStatusCode.OK });
+
+        cognitoMock
+            .Setup(c => c.AdminAddUserToGroupAsync(It.IsAny<AdminAddUserToGroupRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<AdminAddUserToGroupRequest, CancellationToken>((request, _) => capturedAddToGroup = request)
+            .ReturnsAsync(new AdminAddUserToGroupResponse { HttpStatusCode = HttpStatusCode.OK });
+
+        var service = CreateService(cognitoMock.Object, ValidOptions);
+        var registerRequest = new RegisterRequest
+        {
+            Email = "first.user@example.com",
+            Password = "Password123!",
+            FirstName = "First",
+            LastName = "User"
+        };
+
+        // Act
+        await service.RegisterAsync(registerRequest);
+
+        // Assert
+        Assert.NotNull(capturedAddToGroup);
+        Assert.Equal(UserGroup.Admin.ToString(), capturedAddToGroup!.GroupName);
     }
 
     [Fact]

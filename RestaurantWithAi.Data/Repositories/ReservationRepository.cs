@@ -157,10 +157,16 @@ public class ReservationRepository(RestaurantDbContext dbContext) : IReservation
         var startOfDay = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Utc);
         var endOfDay = startOfDay.AddDays(1);
 
-        // Get all waiters for the restaurant
+        // Get waiters who have a schedule entry for this date at this restaurant
+        var scheduledWaiterIds = await dbContext.WaiterSchedules
+            .AsNoTracking()
+            .Where(ws => ws.Date == date)
+            .Select(ws => ws.WaiterId)
+            .ToListAsync();
+
         var waiters = await dbContext.Waiters
             .AsNoTracking()
-            .Where(w => w.RestaurantId == restaurantId)
+            .Where(w => w.RestaurantId == restaurantId && scheduledWaiterIds.Contains(w.UserId))
             .ToListAsync();
 
         if (!waiters.Any())
@@ -185,6 +191,12 @@ public class ReservationRepository(RestaurantDbContext dbContext) : IReservation
             .AsNoTracking()
             .FirstOrDefaultAsync(w => w.UserId == leastLoadedWaiterId);
     }
+
+    public async Task<bool> IsWaiterScheduledAsync(string waiterId, DateOnly date)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(waiterId);
+        return await dbContext.WaiterSchedules
+            .AsNoTracking()
+            .AnyAsync(ws => ws.WaiterId == waiterId && ws.Date == date);
+    }
 }
-
-

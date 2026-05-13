@@ -3,6 +3,8 @@
 public class ReportAnalysisRequest
 {
     public string ReportContent { get; set; } = string.Empty;
+    public string AnalysisType { get; set; } = string.Empty; // "menu" | "waiter" | "profitability"
+    public Guid? RestaurantId { get; set; }
 }
 
 public class ReportAnalysisResponse

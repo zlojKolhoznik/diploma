@@ -13,5 +13,9 @@ public class UpdateProfileRequest
     [Phone]
     [MaxLength(20)]
     public string? PhoneNumber { get; set; }
+
+    [Url]
+    [MaxLength(2048)]
+    public string? PhotoUrl { get; set; }
 }
 

@@ -164,7 +164,7 @@ public class ReservationServiceTests
             sut.UpdateReservationStatusAsync(reservationId, new UpdateReservationStatusRequest
             {
                 Status = ReservationStatuses.PendingPayment
-            }));
+            }, currentUserId: null, isAdmin: true));
     }
 
     private static ReservationService CreateSut(IReservationRepository repository)

@@ -21,12 +21,19 @@ public class OrderService(IOrderRepository orderRepository, IMapper mapper) : IO
         return mapper.Map<OrderResponse>(order);
     }
 
-    public async Task CreateOrderAsync(Guid restaurantId, Guid reservationId, CreateOrderRequest request, string currentUserId, bool isAdmin)
+    public async Task CreateOrderAsync(Guid restaurantId, Guid reservationId, CreateOrderRequest request, string currentUserId, bool isAdmin, bool isWaiter)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         var reservation = await GetAccessibleReservationAsync(restaurantId, reservationId, currentUserId, isAdmin);
         EnsureReservationCanAcceptOrders(reservation);
+
+        // Customer can only order on their own reservation
+        if (!isAdmin && !isWaiter)
+        {
+            if (!string.Equals(reservation.GuestId, currentUserId, StringComparison.Ordinal))
+                throw new UnauthorizedAccessException("Customers can only place orders on their own reservations.");
+        }
 
         // Pre-order lead-time: if reservation is in Created status, require orders to be placed at least 15 minutes before start
         if (string.Equals(reservation.Status, ReservationStatuses.Created, StringComparison.Ordinal))
@@ -86,12 +93,19 @@ public class OrderService(IOrderRepository orderRepository, IMapper mapper) : IO
         await orderRepository.SaveChangesAsync();
     }
 
-    public async Task AddOrderItemAsync(Guid restaurantId, Guid reservationId, Guid orderId, AddOrderItemRequest request, string currentUserId, bool isAdmin)
+    public async Task AddOrderItemAsync(Guid restaurantId, Guid reservationId, Guid orderId, AddOrderItemRequest request, string currentUserId, bool isAdmin, bool isWaiter)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         var reservation = await GetAccessibleReservationAsync(restaurantId, reservationId, currentUserId, isAdmin);
         EnsureReservationCanAcceptOrders(reservation);
+
+        // Customer can only add items to their own reservations
+        if (!isAdmin && !isWaiter)
+        {
+            if (!string.Equals(reservation.GuestId, currentUserId, StringComparison.Ordinal))
+                throw new UnauthorizedAccessException("Customers can only manage items on their own reservations.");
+        }
 
         var order = await orderRepository.GetOrderByIdAsync(restaurantId, reservationId, orderId);
         EnsureOrderIsEditable(order);

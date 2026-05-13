@@ -72,7 +72,7 @@ public class ReservationsController(IReservationsService reservationsService, IL
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Guest,Admin")]
+    [Authorize(Roles = "Guest,Waiter,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -224,16 +224,17 @@ public class ReservationsController(IReservationsService reservationsService, IL
     }
 
     [HttpPatch("{id:guid}/status")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Waiter,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateReservationStatusRequest request)
     {
         try
         {
-            await reservationsService.UpdateReservationStatusAsync(id, request);
+            await reservationsService.UpdateReservationStatusAsync(id, request, GetCurrentUserId(), User.IsInRole("Admin"));
             return NoContent();
         }
         catch (InvalidReservationStatusTransitionException ex)
@@ -245,6 +246,10 @@ public class ReservationsController(IReservationsService reservationsService, IL
         {
             logger.LogInformation(ex, "Update reservation status request for id {ReservationId} was invalid.", id);
             return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
         }
         catch (KeyNotFoundException ex)
         {

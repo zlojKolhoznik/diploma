@@ -81,8 +81,21 @@ public class ReservationService(IReservationRepository reservationRepository, IM
             // Auto-assign waiter based on current user or least-loaded waiter
             if (waiterRestaurantId.HasValue)
             {
-                // If current user is a waiter, assign to them
-                reservation.AssignedWaiterId = currentUserId;
+                var reservationDate = DateOnly.FromDateTime(reservation.StartTime);
+                var isScheduled = await reservationRepository.IsWaiterScheduledAsync(currentUserId, reservationDate);
+
+                if (isScheduled)
+                {
+                    // If current user is a scheduled waiter, assign to them
+                    reservation.AssignedWaiterId = currentUserId;
+                }
+                else
+                {
+                    // Fall back to least-loaded scheduled waiter
+                    var leastLoadedWaiter = await reservationRepository.GetLeastLoadedWaiterAsync(request.RestaurantId, reservationDate);
+                    if (leastLoadedWaiter != null)
+                        reservation.AssignedWaiterId = leastLoadedWaiter.UserId;
+                }
             }
             else
             {
@@ -107,7 +120,13 @@ public class ReservationService(IReservationRepository reservationRepository, IM
         EnsureCancellationAllowed(reservation);
 
         if (!isAdmin)
-            EnsureGuestOwnership(reservation, currentUserId);
+        {
+            var isAssignedWaiter = string.Equals(reservation.AssignedWaiterId, currentUserId, StringComparison.Ordinal);
+            var isGuestOwner = string.Equals(reservation.GuestId, currentUserId, StringComparison.Ordinal);
+
+            if (!isAssignedWaiter && !isGuestOwner)
+                throw new UnauthorizedAccessException("You can only cancel your own reservation or one assigned to you.");
+        }
 
         await reservationRepository.DeleteReservationAsync(id);
     }
@@ -182,7 +201,7 @@ public class ReservationService(IReservationRepository reservationRepository, IM
         await reservationRepository.UpdateReservationAssignedWaiterAsync(id, request.AssignedWaiterId.Trim());
     }
 
-    public async Task UpdateReservationStatusAsync(Guid id, UpdateReservationStatusRequest request)
+    public async Task UpdateReservationStatusAsync(Guid id, UpdateReservationStatusRequest request, string? currentUserId, bool isAdmin)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -191,6 +210,13 @@ public class ReservationService(IReservationRepository reservationRepository, IM
 
         if (!ReservationStatuses.Flow.Contains(newStatus, StringComparer.Ordinal))
             throw new ArgumentException($"Unsupported status '{newStatus}'.", nameof(request));
+
+        if (!isAdmin)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(currentUserId);
+            if (!string.Equals(reservation.AssignedWaiterId, currentUserId, StringComparison.Ordinal))
+                throw new UnauthorizedAccessException("Only the assigned waiter can change reservation status.");
+        }
 
         var flow = ReservationStatuses.Flow;
         var currentIndex = flow.ToList().IndexOf(reservation.Status);

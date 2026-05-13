@@ -7,7 +7,7 @@ namespace RestaurantWithAi.Core.Services;
 
 public class ReviewService(IReviewRepository reviewRepository, IReservationRepository reservationRepository, IRestaurantRepository restaurantRepository, IWaiterRepository waiterRepository, IReviewModerationService reviewModerationService, IMapper mapper) : IReviewsService
 {
-    public async Task CreateReviewAsync(Guid reservationId, CreateReviewRequest request, string currentUserId, bool isAdmin)
+    public async Task CreateReviewAsync(Guid reservationId, CreateReviewRequest request, string? currentUserId, bool isAdmin)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -52,10 +52,34 @@ public class ReviewService(IReviewRepository reviewRepository, IReservationRepos
         }
     }
 
-    public async Task<IEnumerable<ReviewResponse>> GetReviewsForRestaurantAsync(Guid restaurantId)
+    public async Task<IEnumerable<ReviewResponse>> GetReviewsForRestaurantAsync(Guid restaurantId, GetReviewsQuery? query = null)
     {
         var reviews = await reviewRepository.GetReviewsForRestaurantAsync(restaurantId);
-        return mapper.Map<IEnumerable<ReviewResponse>>(reviews);
+
+        IEnumerable<Review> filtered = reviews;
+
+        // Apply sorting
+        if (query != null)
+        {
+            filtered = (query.SortBy, query.SortOrder) switch
+            {
+                ("rating", "asc") when query.Component == "cuisine" => filtered.OrderBy(r => r.CuisineRating),
+                ("rating", "desc") when query.Component == "cuisine" => filtered.OrderByDescending(r => r.CuisineRating),
+                ("rating", "asc") when query.Component == "service" => filtered.OrderBy(r => r.ServiceRating),
+                ("rating", "desc") when query.Component == "service" => filtered.OrderByDescending(r => r.ServiceRating),
+                ("rating", "asc") => filtered.OrderBy(r => (r.CuisineRating + r.ServiceRating) / 2.0),
+                ("rating", "desc") => filtered.OrderByDescending(r => (r.CuisineRating + r.ServiceRating) / 2.0),
+                ("date", "asc") => filtered.OrderBy(r => r.CreatedAtUtc),
+                ("date", "desc") => filtered.OrderByDescending(r => r.CreatedAtUtc),
+                _ => filtered.OrderByDescending(r => r.CreatedAtUtc),
+            };
+        }
+        else
+        {
+            filtered = filtered.OrderByDescending(r => r.CreatedAtUtc);
+        }
+
+        return mapper.Map<IEnumerable<ReviewResponse>>(filtered);
     }
 }
 

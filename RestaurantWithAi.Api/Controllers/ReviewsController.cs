@@ -13,11 +13,11 @@ public class ReviewsController(IReviewsService reviewsService, IReviewModeration
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<ReviewResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<ReviewResponse>>> GetReviews(Guid restaurantId)
+    public async Task<ActionResult<IEnumerable<ReviewResponse>>> GetReviews(Guid restaurantId, [FromQuery] GetReviewsQuery? query)
     {
         try
         {
-            var reviews = await reviewsService.GetReviewsForRestaurantAsync(restaurantId);
+            var reviews = await reviewsService.GetReviewsForRestaurantAsync(restaurantId, query);
             return Ok(reviews);
         }
         catch (Exception ex)
@@ -28,7 +28,7 @@ public class ReviewsController(IReviewsService reviewsService, IReviewModeration
     }
 
     [HttpPost("../../reservations/{reservationId:guid}/review")]
-    [Authorize]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -37,7 +37,7 @@ public class ReviewsController(IReviewsService reviewsService, IReviewModeration
     {
         try
         {
-            await reviewsService.CreateReviewAsync(reservationId, request, GetCurrentUserId(), User.IsInRole("Admin"));
+            await reviewsService.CreateReviewAsync(reservationId, request, TryGetCurrentUserId(), User.IsInRole("Admin"));
             return NoContent();
         }
         catch (ArgumentException ex)
@@ -93,6 +93,12 @@ public class ReviewsController(IReviewsService reviewsService, IReviewModeration
             throw new UnauthorizedAccessException("Current user identifier claim is missing.");
 
         return userId;
+    }
+
+    private string? TryGetCurrentUserId()
+    {
+        var userId = User.FindFirstValue("sub") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return string.IsNullOrWhiteSpace(userId) ? null : userId;
     }
 }
 

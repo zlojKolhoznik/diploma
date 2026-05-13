@@ -23,6 +23,7 @@ public class RestaurantDbContext : DbContext
     public DbSet<Review> Reviews { get; set; }
     public DbSet<WaiterSchedule> WaiterSchedules { get; set; }
     public DbSet<AdminAssignment> AdminAssignments { get; set; }
+    public DbSet<Report> Reports { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,6 +39,7 @@ public class RestaurantDbContext : DbContext
         ConfigureOrdersTable(modelBuilder);
         ConfigureOrderItemsTable(modelBuilder);
         ConfigureReviewsTable(modelBuilder);
+        ConfigureReportsTable(modelBuilder);
     }
 
     private static void ConfigureReviewsTable(ModelBuilder modelBuilder)
@@ -225,5 +227,15 @@ public class RestaurantDbContext : DbContext
             .WithMany(d => d.OrderItems)
             .HasForeignKey(i => i.DishId)
             .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    private static void ConfigureReportsTable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Report>().ToTable("Reports");
+        modelBuilder.Entity<Report>().HasKey(r => r.Id);
+        modelBuilder.Entity<Report>().Property(r => r.Type).IsRequired().HasMaxLength(100);
+        modelBuilder.Entity<Report>().Property(r => r.Format).IsRequired().HasMaxLength(50);
+        modelBuilder.Entity<Report>().Property(r => r.GeneratedById).HasMaxLength(200);
+        modelBuilder.Entity<Report>().Property(r => r.StorageKey).HasMaxLength(500);
     }
 }

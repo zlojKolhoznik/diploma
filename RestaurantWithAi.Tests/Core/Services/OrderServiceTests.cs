@@ -31,7 +31,7 @@ public class OrderServiceTests
         var sut = CreateSut(repositoryMock.Object);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.CreateOrderAsync(restaurantId, reservationId, new CreateOrderRequest(), "waiter-1", isAdmin: false));
+            sut.CreateOrderAsync(restaurantId, reservationId, new CreateOrderRequest(), "waiter-1", isAdmin: false, isWaiter: true));
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class OrderServiceTests
         var sut = CreateSut(repositoryMock.Object);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.CreateOrderAsync(restaurantId, reservationId, new CreateOrderRequest(), "waiter-1", isAdmin: false));
+            sut.CreateOrderAsync(restaurantId, reservationId, new CreateOrderRequest(), "waiter-1", isAdmin: false, isWaiter: true));
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class OrderServiceTests
             {
                 DishId = dishId,
                 Quantity = 1
-            }, "waiter-1", isAdmin: false));
+            }, "waiter-1", isAdmin: false, isWaiter: true));
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class OrderServiceTests
         var sut = CreateSut(repositoryMock.Object);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            sut.CreateOrderAsync(restaurantId, reservationId, new CreateOrderRequest(), "waiter-other", isAdmin: false));
+            sut.CreateOrderAsync(restaurantId, reservationId, new CreateOrderRequest(), "waiter-other", isAdmin: false, isWaiter: true));
     }
 
     private static OrderService CreateSut(IOrderRepository repository)
