@@ -40,6 +40,12 @@ builder.Services
     .Bind(builder.Configuration.GetSection(AwsCognitoOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+// Bind S3 options
+builder.Services
+    .AddOptions<AwsS3Options>()
+    .Bind(builder.Configuration.GetSection(AwsS3Options.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 builder.Services.AddLogging();
 
 var awsCognitoOptions = builder.Configuration.GetSection(AwsCognitoOptions.SectionName).Get<AwsCognitoOptions>()

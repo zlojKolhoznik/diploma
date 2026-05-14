@@ -28,13 +28,13 @@ namespace RestaurantWithAi.Data.Migrations
                         column: x => x.AppointedById,
                         principalTable: "Waiters",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_AdminAssignments_Waiters_AppointedUserId",
                         column: x => x.AppointedUserId,
                         principalTable: "Waiters",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(

@@ -12,8 +12,11 @@ public class Restaurant
     
     [Required]
     public required string Address { get; set; }
-
+    
     public decimal? AverageRating { get; set; }
+
+    // Public image URL stored for restaurants
+    public string? ImageUrl { get; set; }
     
     public ICollection<Dish> AvailableDishes { get; set; } = new List<Dish>();
 

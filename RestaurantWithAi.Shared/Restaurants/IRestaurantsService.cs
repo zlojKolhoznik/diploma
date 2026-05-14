@@ -7,5 +7,6 @@ public interface IRestaurantsService
     Task CreateRestaurantAsync(CreateRestaurantRequest request);
     Task UpdateRestaurantAsync(Guid id, CreateRestaurantRequest request);
     Task DeleteRestaurantAsync(Guid id);
+    Task<string> UploadRestaurantImageAsync(Guid id, System.IO.Stream content, string fileName, string contentType);
 }
 

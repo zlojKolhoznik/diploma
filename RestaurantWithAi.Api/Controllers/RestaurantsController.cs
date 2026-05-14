@@ -145,5 +145,49 @@ public class RestaurantsController(IRestaurantsService restaurantsService, ILogg
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
         }
     }
+
+    [HttpPost("{id:guid}/image")]
+    [Authorize(Roles = "Admin")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UploadRestaurantImage(Guid id, [FromForm] IFormFile? file)
+    {
+        try
+        {
+            if (file is null || file.Length == 0)
+                return BadRequest(new { message = "No file provided." });
+
+            if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { message = "Invalid file type. Only images are allowed." });
+
+            const long maxSizeBytes = 10 * 1024 * 1024; // 10 MB
+            if (file.Length > maxSizeBytes)
+                return BadRequest(new { message = "File is too large. Maximum allowed size is 10MB." });
+
+            await using var stream = file.OpenReadStream();
+            var url = await restaurantsService.UploadRestaurantImageAsync(id, stream, file.FileName, file.ContentType);
+            return Ok(new { url });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            logger.LogInformation(ex, "Restaurant image upload failed because restaurant was not found.");
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogInformation(ex, "Unauthorized while uploading restaurant image.");
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while uploading restaurant image.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+        }
+    }
 }
 

@@ -47,6 +47,7 @@ public class RestaurantRepository(RestaurantDbContext dbContext) : IRestaurantRe
 
         restaurantFromDb.City = restaurant.City;
         restaurantFromDb.Address = restaurant.Address;
+        restaurantFromDb.ImageUrl = restaurant.ImageUrl;
 
         await dbContext.SaveChangesAsync();
     }

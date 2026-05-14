@@ -31,6 +31,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITablesService, TableService>();
         services.AddScoped<IOrdersService, OrderService>();
         services.AddScoped<IReviewsService, ReviewService>();
+        // Image storage and profile repository
+        services.AddSingleton<RestaurantWithAi.Shared.AI.IImageStorageService, S3ImageStorageService>();
+        services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IReviewModerationService, ClaudeReviewModerationService>();
         services.AddScoped<ITextGenerationClient, UnconfiguredTextGenerationClient>();
         services.AddScoped<IReportService, ReportService>();

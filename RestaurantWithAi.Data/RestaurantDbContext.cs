@@ -24,6 +24,7 @@ public class RestaurantDbContext : DbContext
     public DbSet<WaiterSchedule> WaiterSchedules { get; set; }
     public DbSet<AdminAssignment> AdminAssignments { get; set; }
     public DbSet<Report> Reports { get; set; }
+    public DbSet<RestaurantWithAi.Core.Entities.UserProfile> UserProfiles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,6 +41,7 @@ public class RestaurantDbContext : DbContext
         ConfigureOrderItemsTable(modelBuilder);
         ConfigureReviewsTable(modelBuilder);
         ConfigureReportsTable(modelBuilder);
+        ConfigureUserProfilesTable(modelBuilder);
     }
 
     private static void ConfigureReviewsTable(ModelBuilder modelBuilder)
@@ -79,6 +81,7 @@ public class RestaurantDbContext : DbContext
         modelBuilder.Entity<Restaurant>().Property(r => r.City).HasMaxLength(100);
         modelBuilder.Entity<Restaurant>().Property(r => r.Address).HasMaxLength(200);
         modelBuilder.Entity<Restaurant>().Property(r => r.AverageRating).HasColumnType("decimal(3,1)").IsRequired(false);
+        modelBuilder.Entity<Restaurant>().Property(r => r.ImageUrl).HasMaxLength(2048).IsRequired(false);
     }
 
     private static void ConfigureDishAvailabilityRelationship(ModelBuilder modelBuilder)
@@ -237,5 +240,14 @@ public class RestaurantDbContext : DbContext
         modelBuilder.Entity<Report>().Property(r => r.Format).IsRequired().HasMaxLength(50);
         modelBuilder.Entity<Report>().Property(r => r.GeneratedById).HasMaxLength(200);
         modelBuilder.Entity<Report>().Property(r => r.StorageKey).HasMaxLength(500);
+    }
+
+    // Configure user profiles table to store S3 storage key per user (no PII)
+    private static void ConfigureUserProfilesTable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RestaurantWithAi.Core.Entities.UserProfile>().ToTable("UserProfiles");
+        modelBuilder.Entity<RestaurantWithAi.Core.Entities.UserProfile>().HasKey(u => u.UserId);
+        modelBuilder.Entity<RestaurantWithAi.Core.Entities.UserProfile>().Property(u => u.UserId).HasMaxLength(200);
+        modelBuilder.Entity<RestaurantWithAi.Core.Entities.UserProfile>().Property(u => u.PhotoStorageKey).HasMaxLength(1000).IsRequired(false);
     }
 }

@@ -8,4 +8,5 @@ public interface IDishesService
     Task UpdateDishAsync(Guid id, CreateDishRequest request);
     Task UpdateDishAvailabilityAsync(Guid id, IEnumerable<Guid> restaurantIds);
     Task DeleteDishAsync(Guid id);
+    Task<string> UploadDishImageAsync(Guid id, System.IO.Stream content, string fileName, string contentType);
 }
