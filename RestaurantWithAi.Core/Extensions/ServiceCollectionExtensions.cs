@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RestaurantWithAi.Core.Contracts;
 using RestaurantWithAi.Core.Services;
@@ -14,13 +15,14 @@ using RestaurantWithAi.Shared.Tables;
 using RestaurantWithAi.Shared.Orders;
 using RestaurantWithAi.Shared.Reviews;
 using RestaurantWithAi.Shared.Reports;
+using RestaurantWithAi.Shared.Options;
 
 namespace RestaurantWithAi.Core.Extensions;
 
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddCoreServices(this IServiceCollection services)
+    public static IServiceCollection AddCoreServices(this IServiceCollection services, IConfiguration? configuration = null)
     {
         services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
         services.AddScoped<IAuthService, CognitoAuthService>();
@@ -32,10 +34,24 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOrdersService, OrderService>();
         services.AddScoped<IReviewsService, ReviewService>();
         // Image storage and profile repository
-        services.AddSingleton<RestaurantWithAi.Shared.AI.IImageStorageService, S3ImageStorageService>();
+        services.AddSingleton<IImageStorageService, S3ImageStorageService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IReviewModerationService, ClaudeReviewModerationService>();
-        services.AddScoped<ITextGenerationClient, UnconfiguredTextGenerationClient>();
+
+        var claudeApiKey = configuration?[$"{ClaudeOptions.SectionName}:ApiKey"];
+        var claudeBaseUrl = configuration?[$"{ClaudeOptions.SectionName}:BaseUrl"] ?? "https://api.anthropic.com/";
+        if (!string.IsNullOrWhiteSpace(claudeApiKey))
+        {
+            services.Configure<ClaudeOptions>(configuration!.GetSection(ClaudeOptions.SectionName));
+            services.AddHttpClient<ITextGenerationClient, ClaudeTextGenerationClient>(client =>
+            {
+                client.BaseAddress = new Uri(claudeBaseUrl);
+            });
+        }
+        else
+        {
+            services.AddScoped<ITextGenerationClient, UnconfiguredTextGenerationClient>();
+        }
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IReportSectionBuilder, StructuredReportSectionBuilder>();
         services.AddScoped<IReportAnalysisService, ReportAnalysisService>();

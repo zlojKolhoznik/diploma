@@ -9,7 +9,7 @@ public static class ReservationStatuses
 
     public static readonly IReadOnlyList<string> Flow = [Created, InProgress, PendingPayment, Closed];
 
-    public static readonly IReadOnlySet<string> OpenStatuses =
-        new HashSet<string>(StringComparer.Ordinal) { Created, InProgress, PendingPayment };
+    public static readonly IReadOnlyList<string> OpenStatuses =
+        new List<string> { Created, InProgress, PendingPayment };
 }
 

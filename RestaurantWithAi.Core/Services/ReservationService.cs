@@ -109,6 +109,20 @@ public class ReservationService(IReservationRepository reservationRepository, IM
             }
         }
 
+        // Auto-assign the smallest available table that fits the party size
+        var availableTables = await reservationRepository.GetAvailableTablesAsync(
+            request.RestaurantId,
+            reservation.StartTime,
+            request.ApproximateDurationMinutes,
+            request.NumberOfGuests);
+
+        var bestTable = availableTables
+            .OrderBy(t => t.Seats)
+            .FirstOrDefault();
+
+        if (bestTable != null)
+            reservation.TableNumber = bestTable.TableNumber;
+
         await reservationRepository.AddReservationAsync(reservation);
     }
 

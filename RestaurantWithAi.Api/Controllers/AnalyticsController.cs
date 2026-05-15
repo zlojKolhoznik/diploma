@@ -10,7 +10,7 @@ namespace RestaurantWithAi.Api.Controllers;
 [Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/analytics")]
-public class AnalyticsController(IReportService reportService, IReportRendererFactory rendererFactory, IReportAnalysisService analysisService, IWaiterRepository waiterRepository, ILogger<AnalyticsController> logger) : ControllerBase
+public class AnalyticsController(IReportService reportService, IReportRendererFactory rendererFactory, IReportAnalysisService analysisService, IAdminAssignmentRepository adminAssignmentRepository, ILogger<AnalyticsController> logger) : ControllerBase
 {
     [HttpPost("reports")]
     [ProducesResponseType(typeof(ReportResponse), StatusCodes.Status200OK)]
@@ -144,8 +144,8 @@ public class AnalyticsController(IReportService reportService, IReportRendererFa
 
     private async Task<Guid?> GetAdminRestaurantScopeAsync(string currentUserId)
     {
-        var waiter = await waiterRepository.GetWaiterByUserIdAsync(currentUserId);
-        return waiter?.RestaurantId;
+        var assignment = await adminAssignmentRepository.GetWhoAppointedAdminAsync(currentUserId);
+        return assignment?.RestaurantId;
     }
 }
 

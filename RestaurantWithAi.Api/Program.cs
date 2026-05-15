@@ -95,7 +95,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>();
-builder.Services.AddCoreServices();
+builder.Services.AddCoreServices(builder.Configuration);
 builder.Services.AddDataServices(builder.Configuration);
 
 var app = builder.Build();

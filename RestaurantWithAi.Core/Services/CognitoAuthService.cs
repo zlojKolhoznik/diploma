@@ -178,7 +178,7 @@ public class CognitoAuthService : IAuthService
         {
             throw;
         }
-        catch (AmazonCognitoIdentityProviderException)
+        catch (AmazonCognitoIdentityProviderException e)
         {
             throw new RegistrationFailedException("User registration failed.");
         }

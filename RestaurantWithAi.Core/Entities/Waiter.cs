@@ -16,10 +16,5 @@ public class Waiter
     public Restaurant? Restaurant { get; set; }
 
     public ICollection<WaiterSchedule> Schedules { get; set; } = new List<WaiterSchedule>();
-    
-    // Admin assignments: admins this user appointed
-    public ICollection<AdminAssignment> AdminsAppointed { get; set; } = new List<AdminAssignment>();
-    
-    // Admin assignments: who appointed this admin
-    public ICollection<AdminAssignment> AppointedBy { get; set; } = new List<AdminAssignment>();
 }
+

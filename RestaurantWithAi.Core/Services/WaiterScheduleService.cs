@@ -7,6 +7,9 @@ namespace RestaurantWithAi.Core.Services;
 
 public class WaiterScheduleService(IWaiterScheduleRepository scheduleRepository, IWaiterRepository waiterRepository, IMapper mapper) : IWaiterScheduleService
 {
+    private static readonly TimeOnly OpeningTime = new(9, 0);
+    private static readonly TimeOnly ClosingTime = new(21, 0);
+
     public async Task<IEnumerable<WaiterScheduleResponse>> GetSchedulesForWaiterAsync(string waiterId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(waiterId);
@@ -41,7 +44,9 @@ public class WaiterScheduleService(IWaiterScheduleRepository scheduleRepository,
 
         // Validate shift times
         if (request.ShiftEnd <= request.ShiftStart)
-            throw new ArgumentException("Shift end time must be after shift start time");
+            throw new ArgumentException("Shift end time must be after shift start time.");
+
+        ValidateShiftWithinOpeningHours(request.ShiftStart, request.ShiftEnd);
 
         var schedule = mapper.Map<WaiterSchedule>(request);
         await scheduleRepository.AddScheduleAsync(schedule);
@@ -58,7 +63,9 @@ public class WaiterScheduleService(IWaiterScheduleRepository scheduleRepository,
 
         // Validate shift times
         if (request.ShiftEnd <= request.ShiftStart)
-            throw new ArgumentException("Shift end time must be after shift start time");
+            throw new ArgumentException("Shift end time must be after shift start time.");
+
+        ValidateShiftWithinOpeningHours(request.ShiftStart, request.ShiftEnd);
 
         var schedule = new WaiterSchedule { Id = scheduleId, ShiftStart = request.ShiftStart, ShiftEnd = request.ShiftEnd, WaiterId = string.Empty };
         await scheduleRepository.UpdateScheduleAsync(schedule);
@@ -70,6 +77,17 @@ public class WaiterScheduleService(IWaiterScheduleRepository scheduleRepository,
             throw new UnauthorizedAccessException("Only admins can delete waiter schedules");
 
         await scheduleRepository.DeleteScheduleAsync(scheduleId);
+    }
+
+    private static void ValidateShiftWithinOpeningHours(TimeOnly shiftStart, TimeOnly shiftEnd)
+    {
+        if (shiftStart < OpeningTime || shiftStart >= ClosingTime)
+            throw new ArgumentException(
+                $"Shift start time must be between {OpeningTime} and {ClosingTime}.");
+
+        if (shiftEnd > ClosingTime)
+            throw new ArgumentException(
+                $"Shift end time cannot be later than closing time {ClosingTime}.");
     }
 }
 

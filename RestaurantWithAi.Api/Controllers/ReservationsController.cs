@@ -11,7 +11,7 @@ namespace RestaurantWithAi.Api.Controllers;
 public class ReservationsController(IReservationsService reservationsService, ILogger<ReservationsController> logger) : ControllerBase
 {
     [HttpGet]
-    [Authorize(Roles = "Guest,Waiter,Admin")]
+    [Authorize(Roles = "Customer,Waiter,Admin")]
     [ProducesResponseType(typeof(IEnumerable<ReservationResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -37,7 +37,7 @@ public class ReservationsController(IReservationsService reservationsService, IL
     }
 
     [HttpPost]
-    [Authorize(Roles = "Guest,Waiter,Admin")]
+    [Authorize(Roles = "Customer,Waiter,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -72,7 +72,7 @@ public class ReservationsController(IReservationsService reservationsService, IL
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Guest,Waiter,Admin")]
+    [Authorize(Roles = "Customer,Waiter,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -107,7 +107,7 @@ public class ReservationsController(IReservationsService reservationsService, IL
     }
 
     [HttpPatch("{id:guid}/time")]
-    [Authorize(Roles = "Guest,Admin")]
+    [Authorize(Roles = "Customer,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

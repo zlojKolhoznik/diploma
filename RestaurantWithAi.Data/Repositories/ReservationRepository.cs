@@ -173,6 +173,7 @@ public class ReservationRepository(RestaurantDbContext dbContext) : IReservation
             return null;
 
         // Count non-closed (open) reservations for each waiter on the given date
+        var openStatuses = ReservationStatuses.OpenStatuses.ToList();
         var waiterLoadMap = new Dictionary<string, int>();
         foreach (var waiter in waiters)
         {
@@ -181,7 +182,7 @@ public class ReservationRepository(RestaurantDbContext dbContext) : IReservation
                 .CountAsync(r => r.AssignedWaiterId == waiter.UserId &&
                                   r.StartTime >= startOfDay &&
                                   r.StartTime < endOfDay &&
-                                  ReservationStatuses.OpenStatuses.Contains(r.Status));
+                                  openStatuses.Contains(r.Status));
             waiterLoadMap[waiter.UserId] = reservationCount;
         }
 

@@ -10,11 +10,11 @@ public static class OrderStatuses
     public const string Cancelled = "Cancelled";
 
     public static readonly string[] Flow = [Created, InProgress, Ready, Served, Closed];
-    public static readonly IReadOnlySet<string> OpenStatuses =
-        new HashSet<string>([Created, InProgress, Ready, Served], StringComparer.Ordinal);
+    public static readonly IReadOnlyList<string> OpenStatuses =
+        new List<string> { Created, InProgress, Ready, Served };
 
-    public static readonly IReadOnlySet<string> EditableStatuses =
-        new HashSet<string>([Created, InProgress, Ready], StringComparer.Ordinal);
+    public static readonly IReadOnlyList<string> EditableStatuses =
+        new List<string> { Created, InProgress, Ready };
 
     public static bool CanTransition(string currentStatus, string targetStatus)
     {

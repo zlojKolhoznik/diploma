@@ -204,7 +204,8 @@ public class WaiterServiceTests
     private static WaiterService CreateService(IAmazonCognitoIdentityProvider cognito)
     {
         var mapper = new MapperConfiguration(cfg => cfg.AddProfile<WaiterMappingProfile>()).CreateMapper();
-        return new WaiterService(cognito, Options.Create(ValidOptions), mapper);
+        var waiterRepo = new Mock<RestaurantWithAi.Core.Contracts.IWaiterRepository>();
+        return new WaiterService(cognito, Options.Create(ValidOptions), mapper, waiterRepo.Object);
     }
 
     private static UserType CreateUserType(string username, string email, string? firstName, string? lastName, string? restaurantId)

@@ -127,20 +127,7 @@ public class RestaurantDbContext : DbContext
         modelBuilder.Entity<AdminAssignment>().HasKey(aa => aa.Id);
         modelBuilder.Entity<AdminAssignment>().Property(aa => aa.AppointedById).HasMaxLength(200);
         modelBuilder.Entity<AdminAssignment>().Property(aa => aa.AppointedUserId).HasMaxLength(200);
-
-        // Relationship: who appointed this admin
-        modelBuilder.Entity<AdminAssignment>()
-            .HasOne(aa => aa.AppointedBy)
-            .WithMany(w => w.AdminsAppointed)
-            .HasForeignKey(aa => aa.AppointedById)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Relationship: the appointed admin
-        modelBuilder.Entity<AdminAssignment>()
-            .HasOne(aa => aa.AppointedUser)
-            .WithMany(w => w.AppointedBy)
-            .HasForeignKey(aa => aa.AppointedUserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<AdminAssignment>().Property(aa => aa.RestaurantId).IsRequired(false);
 
         // Create index for efficient lookups
         modelBuilder.Entity<AdminAssignment>()

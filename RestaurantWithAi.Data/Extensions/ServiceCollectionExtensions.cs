@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IReviewRepository, ReviewRepository>();
             services.AddScoped<IUserProfileRepository, UserProfileRepository>();
             services.AddScoped<IReportRepository, ReportRepository>();
+            services.AddScoped<IReportingDataRepository, ReportingDataRepository>();
             var connectionString = configuration.GetConnectionString("LocalConnection")
                                    ?? configuration.GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("No SQL Server connection string found. Configure 'ConnectionStrings:LocalConnection' or 'ConnectionStrings:DefaultConnection'.");

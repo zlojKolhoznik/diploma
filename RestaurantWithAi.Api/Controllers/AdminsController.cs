@@ -23,7 +23,7 @@ public class AdminsController(IAdminService adminService, ILogger<AdminsControll
         try
         {
             var currentUserId = GetCurrentUserId();
-            await adminService.AppointAdminAsync(currentUserId, request.AdminUserIdToAppoint);
+            await adminService.AppointAdminAsync(currentUserId, request.AdminUserIdToAppoint, request.RestaurantId);
             return NoContent();
         }
         catch (ArgumentException ex)

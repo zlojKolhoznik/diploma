@@ -2,6 +2,8 @@ using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using AutoMapper;
 using Microsoft.Extensions.Options;
+using RestaurantWithAi.Core.Contracts;
+using RestaurantWithAi.Core.Entities;
 using RestaurantWithAi.Shared.Exceptions;
 using RestaurantWithAi.Shared.Options;
 using RestaurantWithAi.Shared.Waiters;
@@ -11,9 +13,10 @@ namespace RestaurantWithAi.Core.Services;
 public class WaiterService(
     IAmazonCognitoIdentityProvider cognito,
     IOptions<AwsCognitoOptions> options,
-    IMapper mapper) : IWaiterService
+    IMapper mapper,
+    IWaiterRepository waiterRepository) : IWaiterService
 {
-    private const string WaitersGroupName = "Waiters";
+    private const string WaitersGroupName = "Waiter";
     private const string RestaurantIdAttributeName = "custom:restaurantId";
 
     private readonly IAmazonCognitoIdentityProvider _cognito = cognito;
@@ -51,21 +54,28 @@ public class WaiterService(
     {
         await EnsureUserExistsAsync(userId);
 
+        // Update Cognito attribute
         var request = new AdminUpdateUserAttributesRequest
         {
             UserPoolId = _options.UserPoolId,
             Username = userId,
             UserAttributes =
             [
-                new AttributeType
-                {
-                    Name = RestaurantIdAttributeName,
-                    Value = restaurantId
-                }
+                new AttributeType { Name = RestaurantIdAttributeName, Value = restaurantId }
             ]
         };
-
         await _cognito.AdminUpdateUserAttributesAsync(request);
+
+        // Upsert the DB Waiter record so schedule and reservation queries work
+        var restaurantGuid = Guid.Parse(restaurantId);
+        Waiter? existing = null;
+        try { existing = await waiterRepository.GetWaiterByUserIdAsync(userId); }
+        catch (KeyNotFoundException) { /* not yet in DB — will add below */ }
+
+        if (existing == null)
+            await waiterRepository.AddWaiterAsync(new Waiter { UserId = userId, RestaurantId = restaurantGuid });
+        else
+            await waiterRepository.UpdateWaiterRestaurantAsync(userId, restaurantGuid);
     }
 
     private async Task EnsureUserExistsAsync(string userId)
