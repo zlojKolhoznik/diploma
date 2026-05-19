@@ -37,9 +37,9 @@ public class StructuredReportSectionBuilder(IReportingDataRepository reportingDa
             [
                 new() { Name = "Period",               Value = FormatPeriod(request) },
                 new() { Name = "Total Locations",      Value = data.Count.ToString() },
-                new() { Name = "Total Revenue",        Value = $"${totalRevenue:N2}" },
+                new() { Name = "Total Revenue",        Value = FormatCurrency(totalRevenue) },
                 new() { Name = "Total Orders",         Value = totalOrders.ToString() },
-                new() { Name = "Avg Revenue/Location", Value = data.Count > 0 ? $"${totalRevenue / data.Count:N2}" : "N/A" }
+                new() { Name = "Avg Revenue/Location", Value = data.Count > 0 ? FormatCurrency(totalRevenue / data.Count) : "N/A" }
             ]
         });
 
@@ -53,10 +53,10 @@ public class StructuredReportSectionBuilder(IReportingDataRepository reportingDa
                 Metrics =
                 [
                     new() { Name = "Restaurant ID",      Value = r.RestaurantId.ToString() },
-                    new() { Name = "Total Revenue",      Value = $"${r.TotalRevenue:N2}" },
+                    new() { Name = "Total Revenue",      Value = FormatCurrency(r.TotalRevenue) },
                     new() { Name = "Total Orders",       Value = r.TotalOrders.ToString() },
                     new() { Name = "Total Reservations", Value = r.TotalReservations.ToString() },
-                    new() { Name = "Avg Order Value",    Value = $"${avgOrder:N2}" },
+                    new() { Name = "Avg Order Value",    Value = FormatCurrency(avgOrder) },
                     new() { Name = "Average Rating",     Value = r.AverageRating.HasValue ? $"{r.AverageRating:N1}/5" : "No ratings yet" }
                 ]
             });
@@ -88,7 +88,7 @@ public class StructuredReportSectionBuilder(IReportingDataRepository reportingDa
                 new() { Name = "Period",            Value = FormatPeriod(request) },
                 new() { Name = "Distinct Dishes",   Value = data.Count.ToString() },
                 new() { Name = "Total Items Sold",  Value = totalQty.ToString() },
-                new() { Name = "Total Revenue",     Value = $"${totalRevenue:N2}" }
+                new() { Name = "Total Revenue",     Value = FormatCurrency(totalRevenue) }
             ]
         });
 
@@ -102,7 +102,7 @@ public class StructuredReportSectionBuilder(IReportingDataRepository reportingDa
                 Metrics = top.Select(d => new ReportMetricResponse
                 {
                     Name  = d.DishName,
-                    Value = $"{d.TotalQuantityOrdered} sold | ${d.TotalRevenue:N2} revenue | avg ${d.AverageUnitPrice:N2}"
+                    Value = $"{d.TotalQuantityOrdered} sold | {FormatCurrency(d.TotalRevenue)} revenue | avg {FormatCurrency(d.AverageUnitPrice)}"
                 }).ToList()
             });
         }
@@ -117,7 +117,7 @@ public class StructuredReportSectionBuilder(IReportingDataRepository reportingDa
                 Metrics = bottom.Select(d => new ReportMetricResponse
                 {
                     Name  = d.DishName,
-                    Value = $"{d.TotalQuantityOrdered} sold | ${d.TotalRevenue:N2} revenue"
+                    Value = $"{d.TotalQuantityOrdered} sold | {FormatCurrency(d.TotalRevenue)} revenue"
                 }).ToList()
             });
         }
@@ -208,5 +208,7 @@ public class StructuredReportSectionBuilder(IReportingDataRepository reportingDa
         var to   = request.ToUtc?.ToString("yyyy-MM-dd")   ?? "present";
         return $"{from} → {to}";
     }
+
+    private static string FormatCurrency(decimal amount) => $"₴{amount:N2}";
 }
 

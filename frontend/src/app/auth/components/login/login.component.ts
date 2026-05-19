@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import {
   isEmailValid,
   isPasswordValid,
@@ -17,6 +17,7 @@ import {
   DividerComponent,
   CardComponent,
 } from '../../../shared/components';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -41,6 +42,9 @@ import {
   },
 })
 export class LoginComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   email: string = '';
   password: string = '';
   isLoading: boolean = false;
@@ -49,22 +53,11 @@ export class LoginComponent {
   emailDirty: boolean = false;
   passwordDirty: boolean = false;
 
-  onEmailBlur() {
-    this.emailDirty = true;
-  }
+  onEmailBlur() { this.emailDirty = true; }
+  onPasswordBlur() { this.passwordDirty = true; }
 
-  onPasswordBlur() {
-    this.passwordDirty = true;
-  }
-
-  isEmailValid(): boolean {
-    return isEmailValid(this.email);
-  }
-
-  isPasswordValid(): boolean {
-    return isPasswordValid(this.password);
-  }
-
+  isEmailValid(): boolean { return isEmailValid(this.email); }
+  isPasswordValid(): boolean { return isPasswordValid(this.password); }
   isFormValid(): boolean {
     return isLoginFormValid(this.email, this.password, this.emailDirty, this.passwordDirty);
   }
@@ -72,31 +65,35 @@ export class LoginComponent {
   onSubmit(e: Event) {
     e.preventDefault();
     this.errorMessage = '';
-
-    // Mark fields as dirty before validation
     this.emailDirty = true;
     this.passwordDirty = true;
 
-    // Validation
     if (!this.isEmailValid()) {
       this.errorMessage = 'Please enter a valid email address.';
       return;
     }
-
     if (!this.isPasswordValid()) {
       this.errorMessage = 'Password must be at least 8 characters.';
       return;
     }
 
-    // TODO: Call auth service to submit login
-    console.log('Login attempt:', { email: this.email, password: this.password });
     this.isLoading = true;
-
-    // Placeholder: simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      // Replace with actual auth service call
-      console.log('Login would be processed here');
-    }, 1000);
+    this.authService.login({ email: this.email, password: this.password }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        if (this.authService.hasRole('Admin')) {
+          this.router.navigate(['/admin']);
+        } else if (this.authService.hasRole('Waiter')) {
+          this.router.navigate(['/waiter']);
+        } else {
+          this.router.navigate(['/restaurants']);
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage =
+          err?.error?.detail ?? err?.error?.message ?? 'Login failed. Please check your credentials.';
+      },
+    });
   }
 }

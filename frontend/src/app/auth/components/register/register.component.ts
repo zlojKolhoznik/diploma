@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import {
   isEmailValid,
   isNameValid,
@@ -19,6 +19,7 @@ import {
   CardComponent,
   LinkComponent,
 } from '../../../shared/components';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -37,29 +38,30 @@ import {
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
-  host: {
-    class: 'auth-page-host',
-  },
+  host: { class: 'auth-page-host' },
 })
 export class RegisterComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   // Form fields
   email: string = '';
   password: string = '';
   confirmPassword: string = '';
   firstName: string = '';
   lastName: string = '';
-  
+
   // State tracking
   isLoading: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
-  
+
   // Field touched tracking for validation display
-  emailDirty: boolean = false;
-  passwordDirty: boolean = false;
-  confirmPasswordDirty: boolean = false;
-  firstNameDirty: boolean = false;
-  lastNameDirty: boolean = false;
+  emailDirty = false;
+  passwordDirty = false;
+  confirmPasswordDirty = false;
+  firstNameDirty = false;
+  lastNameDirty = false;
 
   // Password strength tracking
   passwordStrength: PasswordStrengthRules = {
@@ -140,15 +142,12 @@ export class RegisterComponent {
     e.preventDefault();
     this.errorMessage = '';
     this.successMessage = '';
-
-    // Mark all fields as dirty before validation
     this.emailDirty = true;
     this.passwordDirty = true;
     this.confirmPasswordDirty = true;
     this.firstNameDirty = true;
     this.lastNameDirty = true;
 
-    // Validation
     if (!this.isFirstNameValid()) {
       this.errorMessage = 'First name must be at least 2 characters.';
       return;
@@ -174,21 +173,25 @@ export class RegisterComponent {
       return;
     }
 
-    // TODO: Call auth service to submit registration
-    console.log('Register attempt:', {
-      firstName: this.firstName,
-      lastName: this.lastName,
-      email: this.email,
-      password: this.password,
-    });
     this.isLoading = true;
-
-    // Placeholder: simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      this.successMessage = 'Account created successfully! Redirecting...';
-      // Replace with actual auth service call
-      console.log('Registration would be processed here');
-    }, 1500);
+    this.authService
+      .register({
+        email: this.email,
+        password: this.password,
+        firstName: this.firstName,
+        lastName: this.lastName,
+      })
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.successMessage = 'Account created! Redirecting to login…';
+          setTimeout(() => this.router.navigate(['/login']), 1500);
+        },
+        error: (err) => {
+          this.isLoading = false;
+          this.errorMessage =
+            err?.error?.detail ?? err?.error?.message ?? 'Registration failed. Please try again.';
+        },
+      });
   }
 }

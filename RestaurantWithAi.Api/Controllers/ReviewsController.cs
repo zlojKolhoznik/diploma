@@ -62,7 +62,7 @@ public class ReviewsController(IReviewsService reviewsService, IReviewModeration
         }
     }
 
-    [HttpPost("../../reservations/{reservationId:guid}/review/moderate")]
+    [HttpPost("/api/restaurants/{restaurantId:guid}/reservations/{reservationId:guid}/review/moderate")]
     [Authorize]
     [ProducesResponseType(typeof(ReviewModerationResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

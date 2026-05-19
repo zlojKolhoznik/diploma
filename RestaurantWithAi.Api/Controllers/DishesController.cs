@@ -159,6 +159,7 @@ public class DishesController(IDishesService dishesService, ILogger<DishesContro
     }
 
     [HttpPost("{id:guid}/image")]
+    [HttpPatch("{id:guid}/image")]
     [Authorize(Roles = "Admin")]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(StatusCodes.Status200OK)]

@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantWithAi.Core.Contracts;
+using RestaurantWithAi.Shared.Admins;
+using RestaurantWithAi.Shared.Auth;
 using RestaurantWithAi.Shared.Waiters;
 
 namespace RestaurantWithAi.Api.Controllers;
@@ -137,6 +139,33 @@ public class AdminsController(IAdminService adminService, ILogger<AdminsControll
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while retrieving appointed-by information.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
+        }
+    }
+
+    [HttpGet("users")]
+    [ProducesResponseType(typeof(PagedAdminUsersResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PagedAdminUsersResponse>> GetUsers(
+        [FromQuery] UserGroup role = UserGroup.Customer,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        try
+        {
+            var users = await adminService.GetUsersByRoleAsync(role, page, pageSize);
+            return Ok(users);
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            logger.LogInformation(ex, "Get users request has invalid paging parameters.");
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while retrieving users.");
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred." });
         }
     }

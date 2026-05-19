@@ -10,6 +10,7 @@
 
 img {
   height: auto;
+  display: block;
   opacity: 0.95;
   transition: opacity 0.3s ease;
 
@@ -25,13 +26,19 @@ img {
 }
 
 .logo-sm {
-  max-width: 200px;
+  max-height: 44px;
+  max-width: 160px;
+  width: auto;
 }
 
 .logo-md {
-  max-width: 280px;
+  max-height: 52px;
+  max-width: 200px;
+  width: auto;
 }
 
 .logo-lg {
-  max-width: 360px;
+  max-height: 80px;
+  max-width: 320px;
+  width: auto;
 }

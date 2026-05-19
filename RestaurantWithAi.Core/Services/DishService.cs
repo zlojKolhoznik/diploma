@@ -43,14 +43,19 @@ public class DishService : IDishesService
     {
         ArgumentNullException.ThrowIfNull(request);
         var dish = _mapper.Map<Dish>(request);
+        dish.ImageUrl = request.ImageUrl?.Trim() ?? string.Empty;
         await _dishRepository.AddDishAsync(dish);
     }
 
     public async Task UpdateDishAsync(Guid id, CreateDishRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
+        var existingDish = await _dishRepository.GetDishByIdAsync(id);
         var dish = _mapper.Map<Dish>(request);
         dish.Id = id;
+        dish.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl)
+            ? existingDish.ImageUrl
+            : request.ImageUrl.Trim();
         await _dishRepository.UpdateDishAsync(dish);
     }
 

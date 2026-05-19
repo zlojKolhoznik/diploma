@@ -1,41 +1,41 @@
-<div class="home-wrapper">
-  <header class="home-header">
-    <app-logo size="md"></app-logo>
-  </header>
+<section class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title">Find Your Perfect Dining Experience</h1>
+    <p class="hero-subtitle">Discover restaurants, make reservations, and enjoy exceptional meals — all in one place.</p>
+    <div class="hero-search">
+      <input
+        type="text"
+        class="hero-search-input"
+        placeholder="Search by city…"
+        [ngModel]="city()"
+        (ngModelChange)="city.set($event)"
+        (keyup.enter)="search()"
+        aria-label="City search"
+      />
+      <button class="hero-search-btn" (click)="search()" aria-label="Search restaurants">
+        <tabler-icon [icon]="'search'" [size]="20"></tabler-icon>
+        Search
+      </button>
+    </div>
+  </div>
+</section>
 
-  <main class="home-main">
-    <app-card maxWidth="520px">
-      <div class="card-header">
-        <h1 class="card-title">Home</h1>
-        <p class="card-subtitle">This is the home page.</p>
-      </div>
-
-      <div class="home-actions">
-        <a [routerLink]="['/register']" class="home-action-link">
-          <app-button type="button" variant="primary">
-            Sign Up
-            <app-icon name="user" [ariaHidden]="true"></app-icon>
-          </app-button>
-        </a>
-
-        <a [routerLink]="['/login']" class="home-action-link">
-          <app-button type="button" variant="secondary">
-            Log In
-            <app-icon name="chevron-right" [ariaHidden]="true"></app-icon>
-          </app-button>
-        </a>
-      </div>
-
-      <div class="home-alt-links">
-        <span class="home-alt-text">Or go directly to:</span>
-        <app-link [routerLink]="['/register']">Sign up</app-link>
-        <span class="home-alt-sep">·</span>
-        <app-link [routerLink]="['/login']">Log in</app-link>
-      </div>
-    </app-card>
-  </main>
-
-  <footer class="home-footer">
-    <p class="footer-text">&copy; 2026 Lapti Steaks. All rights reserved.</p>
-  </footer>
-</div>
+<section class="features">
+  <div class="features-container">
+    <div class="feature-card">
+      <tabler-icon [icon]="'building'" [size]="32" class="feature-icon"></tabler-icon>
+      <h3>Browse Restaurants</h3>
+      <p>Explore a curated list of top restaurants in your city.</p>
+    </div>
+    <div class="feature-card">
+      <tabler-icon [icon]="'calendar'" [size]="32" class="feature-icon"></tabler-icon>
+      <h3>Reserve a Table</h3>
+      <p>Instantly book a table for any occasion — no phone calls needed.</p>
+    </div>
+    <div class="feature-card">
+      <tabler-icon [icon]="'grill-fork'" [size]="32" class="feature-icon"></tabler-icon>
+      <h3>Enjoy Your Meal</h3>
+      <p>Order dishes, track your order, and leave a review with AI moderation.</p>
+    </div>
+  </div>
+</section>

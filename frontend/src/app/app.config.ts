@@ -1,5 +1,6 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/http';
 import { provideTablerIcons } from '@tabler/icons-angular';
 import {
   IconAlertCircle,
@@ -13,14 +14,50 @@ import {
   IconHelpCircle,
   IconChevronRight,
   IconX,
+  IconStar,
+  IconStarFilled,
+  IconCalendar,
+  IconClock,
+  IconMapPin,
+  IconPhone,
+  IconChevronLeft,
+  IconChevronDown,
+  IconTrash,
+  IconEdit,
+  IconPlus,
+  IconFilter,
+  IconSearch,
+  IconBell,
+  IconChartBar,
+  IconUsers,
+  IconShield,
+  IconCircleCheck,
+  IconCircleX,
+  IconLoader2,
+  IconArrowRight,
+  IconMenu2,
+  IconLogout,
+  IconSettings,
+  IconGrillFork,
+  IconBuilding,
+  IconTable,
+  IconCurrencyDollar,
+  IconRefresh,
+  IconEyeglass,
 } from '@tabler/icons-angular';
 
 import { routes } from './app.routes';
+import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { errorInterceptor } from './core/interceptors/error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([authInterceptor, errorInterceptor])
+    ),
     provideTablerIcons({
       IconAlertCircle,
       IconCheck,
@@ -33,6 +70,36 @@ export const appConfig: ApplicationConfig = {
       IconHelpCircle,
       IconChevronRight,
       IconX,
+      IconStar,
+      IconStarFilled,
+      IconCalendar,
+      IconClock,
+      IconMapPin,
+      IconPhone,
+      IconChevronLeft,
+      IconChevronDown,
+      IconTrash,
+      IconEdit,
+      IconPlus,
+      IconFilter,
+      IconSearch,
+      IconBell,
+      IconChartBar,
+      IconUsers,
+      IconShield,
+      IconCircleCheck,
+      IconCircleX,
+      IconLoader2,
+      IconArrowRight,
+      IconMenu2,
+      IconLogout,
+      IconSettings,
+      IconGrillFork,
+      IconBuilding,
+      IconTable,
+      IconCurrencyDollar,
+      IconRefresh,
+      IconEyeglass,
     }),
   ]
 };

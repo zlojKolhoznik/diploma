@@ -24,10 +24,12 @@ public class ClaudeReviewModerationService(ITextGenerationClient textGenerationC
     {
         return
             "You are a restaurant review moderation assistant.\n" +
-            "Review the draft below and return only a compact JSON object with these fields:\n" +
-            "- approved: boolean\n" +
-            "- reason: short explanation when the review should be rejected or flagged\n" +
-            "- suggestedRephrasing: optional friendlier wording when the review needs changes\n\n" +
+            "Review the draft below and return ONLY a compact JSON object (no markdown, no extra text) with exactly these fields:\n" +
+            "- \"approved\": boolean — true if the review is acceptable as-is\n" +
+            "- \"reason\": string — short explanation when the review should be rejected or flagged, null otherwise\n" +
+            "- \"suggestedRephrasing\": string — a single plain-text string with friendlier wording when the review needs changes, null otherwise. " +
+            "This field MUST be a JSON string (not an object or array).\n\n" +
+            "Example output: {\"approved\":false,\"reason\":\"Contains offensive language.\",\"suggestedRephrasing\":\"The food was below expectations and the service felt rushed.\"}\n\n" +
             "Draft review:\n" +
             $"Cuisine rating: {request.CuisineRating}\n" +
             $"Cuisine comment: {request.CuisineComment ?? "(none)"}\n" +

@@ -1,4 +1,7 @@
-﻿namespace RestaurantWithAi.Core.Contracts;
+﻿using RestaurantWithAi.Shared.Admins;
+using RestaurantWithAi.Shared.Auth;
+
+namespace RestaurantWithAi.Core.Contracts;
 
 public interface IAdminService
 {
@@ -11,5 +14,6 @@ public interface IAdminService
     Task DemoteAdminAsync(string demoterId, string adminToDemoteId);
     Task<IEnumerable<string>> GetAppointedAdminsAsync(string appointerId);
     Task<string?> GetAppointedByAsync(string adminUserId);
+    Task<PagedAdminUsersResponse> GetUsersByRoleAsync(UserGroup role, int page, int pageSize);
 }
 
